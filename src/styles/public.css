@@ -1,0 +1,300 @@
+/* ==========================================================================
+   PUBLIC SHELL — Landing Page & Client-Side Auth (DESIGN.md Wise-Inspired)
+   ========================================================================== */
+
+.public-page {
+  min-height: 100vh;
+  background-color: var(--color-canvas-soft);
+  color: var(--color-ink);
+}
+
+.public-container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--space-xl);
+}
+
+/* Minimal Borderless Public Header */
+.public-header {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background-color: rgba(232, 235, 230, 0.92);
+  backdrop-filter: blur(10px);
+  padding: var(--space-lg) 0;
+}
+
+.public-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.public-nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-body);
+}
+
+.public-nav-links a:hover {
+  color: var(--color-ink);
+}
+
+.public-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Hero Band */
+.public-hero {
+  padding: 48px 0 64px;
+}
+
+.public-hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+.public-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  color: var(--color-ink);
+  margin: var(--space-lg) 0;
+}
+
+.public-hero-desc {
+  font-size: 1.08rem;
+  color: var(--color-body);
+  max-width: 520px;
+  margin-bottom: var(--space-2xl);
+}
+
+.public-hero-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* Public Sections */
+.public-section {
+  padding: 40px 0 64px;
+}
+
+.public-section-head {
+  max-width: 640px;
+  margin-bottom: var(--space-2xl);
+}
+
+.public-section-head h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin: var(--space-sm) 0;
+}
+
+.public-section-head p {
+  color: var(--color-body);
+}
+
+/* Trust / Bank Identity Plate */
+.public-trust-plate {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3xl);
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: var(--space-2xl);
+  align-items: center;
+}
+
+.public-trust-left h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 900;
+  margin: var(--space-md) 0 var(--space-sm);
+}
+
+.public-trust-left p {
+  color: var(--color-canvas-soft);
+  margin-bottom: var(--space-xl);
+}
+
+.public-trust-points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.public-trust-points > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.public-trust-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* ==========================================================================
+   AUTH PAGE (Login / Register Centered Card)
+   ========================================================================== */
+
+.auth-page {
+  min-height: 100vh;
+  background-color: var(--color-canvas-soft);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-topbar {
+  width: 100%;
+  max-width: 460px;
+  margin-bottom: var(--space-lg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  background-color: var(--color-canvas);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+}
+
+.auth-card-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-body);
+  margin-bottom: var(--space-xl);
+}
+
+.auth-error-banner {
+  background-color: #fde8e8;
+  color: var(--color-negative-deep);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 0.84rem;
+  font-weight: 600;
+  margin-bottom: var(--space-lg);
+}
+
+.input-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-password-wrap .input-control {
+  padding-right: 44px;
+}
+
+.pin-eye-btn {
+  position: absolute;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-mute);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+  font-size: 0.78rem;
+  color: var(--color-mute);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border-subtle);
+}
+
+.auth-switch-text {
+  text-align: center;
+  margin-top: var(--space-xl);
+  font-size: 0.86rem;
+  color: var(--color-body);
+}
+
+.auth-switch-link {
+  background: none;
+  border: none;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Responsive Public Shell */
+@media (max-width: 900px) {
+  .public-nav-links {
+    display: none;
+  }
+
+  .public-hero-grid,
+  .public-trust-plate {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  .public-trust-plate {
+    padding: var(--space-2xl) var(--space-xl);
+  }
+}
+
+@media (max-width: 640px) {
+  .public-container {
+    padding: 0 var(--space-lg);
+  }
+
+  .auth-page {
+    padding: var(--space-lg);
+  }
+
+  .auth-card {
+    padding: var(--space-xl);
+  }
+}

@@ -1,6 +1,6 @@
 import { GIRO_FACILITY_LABELS, PRODUCT_RULES, ROLLOVER_LABELS } from '../config/product-rules.ts';
-import { MOCK_CUSTOMER } from '../config/seed-data.ts';
 import { accountService } from '../services/account.service.ts';
+import { authService } from '../services/auth.service.ts';
 import { formatIDR } from '../services/format.service.ts';
 import { ledgerService } from '../services/ledger.service.ts';
 import { routerService } from '../services/router.service.ts';
@@ -15,6 +15,7 @@ import { renderLucideIcons } from '../ui/icons.ts';
 import { modalController } from '../ui/modal.controller.ts';
 
 function renderTabunganForm(): string {
+  const user = authService.getCurrentUser();
   return `
     <div class="pane-header">
       <div>
@@ -27,19 +28,19 @@ function renderTabunganForm(): string {
       <div class="form-grid">
         <div class="form-group">
           <label for="tb-name">Nama Lengkap (Sesuai KTP) <span class="required-mark">*</span></label>
-          <input type="text" id="tb-name" class="input-control" value="${MOCK_CUSTOMER.fullName}" required />
+          <input type="text" id="tb-name" class="input-control" value="${user.fullName}" required />
         </div>
         <div class="form-group">
           <label for="tb-nik">NIK (16 Digit) <span class="required-mark">*</span></label>
-          <input type="text" id="tb-nik" class="input-control" value="${MOCK_CUSTOMER.nik}" maxlength="16" pattern="\\d{16}" required />
+          <input type="text" id="tb-nik" class="input-control" value="${user.nik}" maxlength="16" pattern="\\d{16}" required />
         </div>
         <div class="form-group">
           <label for="tb-phone">Nomor WhatsApp / HP <span class="required-mark">*</span></label>
-          <input type="tel" id="tb-phone" class="input-control" value="${MOCK_CUSTOMER.phone}" required />
+          <input type="tel" id="tb-phone" class="input-control" value="${user.phone}" required />
         </div>
         <div class="form-group">
           <label for="tb-email">Alamat Email <span class="required-mark">*</span></label>
-          <input type="email" id="tb-email" class="input-control" value="${MOCK_CUSTOMER.email}" required />
+          <input type="email" id="tb-email" class="input-control" value="${user.email}" required />
         </div>
         <div class="form-group full-width">
           <label for="tb-deposit">Setoran Awal (Min. Rp 50.000) <span class="required-mark">*</span></label>
@@ -62,6 +63,7 @@ function renderTabunganForm(): string {
 }
 
 function renderDepositoForm(prefillAmount?: number, prefillTenor?: number): string {
+  const user = authService.getCurrentUser();
   const amount = prefillAmount ?? 10_000_000;
   const tenor = prefillTenor ?? 6;
 
@@ -77,7 +79,7 @@ function renderDepositoForm(prefillAmount?: number, prefillTenor?: number): stri
       <div class="form-grid">
         <div class="form-group">
           <label for="dp-name">Nama Pemegang Deposito <span class="required-mark">*</span></label>
-          <input type="text" id="dp-name" class="input-control" value="${MOCK_CUSTOMER.fullName}" required />
+          <input type="text" id="dp-name" class="input-control" value="${user.fullName}" required />
         </div>
         <div class="form-group">
           <label for="dp-source">Sumber Dana <span class="required-mark">*</span></label>

@@ -64,6 +64,21 @@ class LedgerService {
     return entry;
   }
 
+  public initializeForRegisteredUser(accountNumber: string, amount: number): void {
+    const welcomeEntry: LedgerTransaction = {
+      id: `tx-welcome-${Date.now()}`,
+      timestamp: formatDateTimeID(new Date()),
+      productKind: 'tabungan',
+      accountNumber,
+      description: 'Saldo Awal Pembukaan Akun Tabungan Lentera',
+      amount,
+      type: 'CREDIT',
+    };
+    this.entries = [welcomeEntry];
+    saveToSession(LEDGER_STORAGE_KEY, this.entries);
+    this.notify();
+  }
+
   public resetToSeed(): void {
     this.entries = createSeedLedger();
     saveToSession(LEDGER_STORAGE_KEY, this.entries);

@@ -7,6 +7,7 @@ import type {
   PortfolioSummary,
   SavingsAccount,
 } from '../types/account.ts';
+import type { UserProfile } from '../types/auth.ts';
 import type {
   DepositApplicationPayload,
   GiroApplicationPayload,
@@ -170,6 +171,33 @@ class AccountService {
     };
 
     this.commitAccount(account);
+    return account;
+  }
+
+  public initializeForRegisteredUser(user: UserProfile): SavingsAccount {
+    const now = new Date();
+    const expiryYear = (now.getFullYear() + 5).toString().slice(-2);
+    const expiryMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+    const account: SavingsAccount = {
+      id: `acc-reg-${Date.now()}`,
+      productKind: 'tabungan',
+      accountNumber: generateAccountNumber(PRODUCT_RULES.savings.accountPrefix),
+      holderName: user.fullName,
+      balance: 500_000,
+      openedAt: formatDateID(now),
+      status: 'AKTIF',
+      nik: user.nik,
+      phone: user.phone,
+      email: user.email,
+      cardNumber: generateVirtualCardNumber(),
+      cardExpiry: `${expiryMonth}/${expiryYear}`,
+      interestRatePa: PRODUCT_RULES.savings.interestRatePa,
+    };
+
+    this.accounts = [account];
+    saveToSession(ACCOUNTS_STORAGE_KEY, this.accounts);
+    this.notify();
     return account;
   }
 
