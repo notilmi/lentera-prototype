@@ -1,0 +1,87 @@
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS — Desktop Sidebar -> Mobile Bottom Tab Bar
+   ========================================================================== */
+
+@media (max-width: 960px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+
+  .mobile-bottom-nav {
+    display: block;
+  }
+
+  .app-topbar {
+    padding: var(--space-md) var(--space-lg);
+  }
+
+  .screen-outlet {
+    padding: var(--space-lg) var(--space-lg) 96px;
+  }
+
+  .catalog-grid,
+  .catalog-grid.two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .service-action-grid,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
+
+  .tenor-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-plate,
+  .calc-plate {
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  .segmented-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .segmented-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seg-btn {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+  }
+
+  .filter-chip-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
