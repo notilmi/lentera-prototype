@@ -44,7 +44,7 @@ function renderCurrentAppScreen(entry: NavigationEntry): void {
       renderRiwayatScreen(outlet);
       break;
     case 'transaksi':
-      renderTransaksiScreen(outlet);
+      renderTransaksiScreen(outlet, entry.params);
       break;
     case 'kredit':
       renderKreditScreen(outlet);

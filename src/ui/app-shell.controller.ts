@@ -10,8 +10,8 @@ function getScreenMeta(route: ScreenRoute): { title: string; subtitle: string } 
   const map: Record<ScreenRoute, { title: string; subtitle: string }> = {
     home: { title: `Halo, ${firstName}`, subtitle: 'Ringkasan finansial LENTERA Bank Anda' },
     simpanan: { title: 'Simpanan', subtitle: 'Tabungan, Deposito & Giro dalam satu tempat' },
-    transaksi: { title: 'Transaksi Digital', subtitle: 'Transfer, Tagihan, QRIS & e-Wallet (Tahap 3)' },
-    kredit: { title: 'Produk Kredit', subtitle: 'Pinjaman Konsumtif & UMKM (Tahap 2)' },
+    transaksi: { title: 'Transaksi Digital', subtitle: 'Transfer, Tagihan, QRIS & Top Up e-Wallet' },
+    kredit: { title: 'Produk Kredit', subtitle: 'Pinjaman Konsumtif, UMKM & Simulasi Angsuran' },
     riwayat: { title: 'Riwayat Mutasi', subtitle: 'Catatan seluruh aktivitas rekening Anda' },
     profil: { title: 'Profil & Info Bank', subtitle: 'Akun nasabah dan identitas LENTERA Bank' },
     'account-detail': { title: 'Detail Rekening', subtitle: 'Informasi rekening, sertifikat & mutasi' },

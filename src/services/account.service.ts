@@ -68,6 +68,65 @@ class AccountService {
     return this.accounts.find((acc) => acc.id === id);
   }
 
+  public getTransactableAccounts(): readonly (SavingsAccount | GiroAccount)[] {
+    return this.accounts.filter(
+      (acc): acc is SavingsAccount | GiroAccount =>
+        acc.productKind === 'tabungan' || acc.productKind === 'giro'
+    );
+  }
+
+  public creditAccount(
+    accountId: string,
+    amount: number
+  ): { ok: true; account: BankAccount } | { ok: false; error: string } {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { ok: false, error: 'Nominal kredit harus lebih dari Rp 0.' };
+    }
+    const target = this.getAccountById(accountId);
+    if (!target) {
+      return { ok: false, error: 'Rekening tujuan tidak ditemukan.' };
+    }
+
+    const updated: BankAccount = { ...target, balance: target.balance + Math.round(amount) };
+    this.accounts = this.accounts.map((acc) => (acc.id === accountId ? updated : acc));
+    saveToSession(ACCOUNTS_STORAGE_KEY, this.accounts);
+    this.notify();
+    return { ok: true, account: updated };
+  }
+
+  public debitAccount(
+    accountId: string,
+    amount: number
+  ): { ok: true; account: BankAccount } | { ok: false; error: string } {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { ok: false, error: 'Nominal transaksi harus lebih dari Rp 0.' };
+    }
+    const target = this.getAccountById(accountId);
+    if (!target) {
+      return { ok: false, error: 'Rekening sumber tidak ditemukan.' };
+    }
+    if (target.productKind === 'deposito') {
+      return { ok: false, error: 'Rekening Deposito berjangka tidak dapat didebit untuk transaksi harian.' };
+    }
+
+    const minHold = target.productKind === 'tabungan' ? PRODUCT_RULES.savings.minHoldBalance : 0;
+    const rounded = Math.round(amount);
+    if (target.balance - rounded < minHold) {
+      return {
+        ok: false,
+        error: `Saldo tidak mencukupi. Sisa saldo minimal untuk ${
+          target.productKind === 'tabungan' ? 'Tabungan' : 'Giro'
+        } adalah Rp ${minHold.toLocaleString('id-ID')}.`,
+      };
+    }
+
+    const updated: BankAccount = { ...target, balance: target.balance - rounded };
+    this.accounts = this.accounts.map((acc) => (acc.id === accountId ? updated : acc));
+    saveToSession(ACCOUNTS_STORAGE_KEY, this.accounts);
+    this.notify();
+    return { ok: true, account: updated };
+  }
+
   public getSummary(): PortfolioSummary {
     let savingsTotal = 0;
     let depositTotal = 0;

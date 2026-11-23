@@ -1125,3 +1125,147 @@
   font-weight: 800;
   color: var(--color-ink-deep);
 }
+
+/* ==========================================================================
+   TAHAP 2 & 3 — KREDIT, TRANSAKSI DIGITAL, & DEBIT LEDGER
+   ========================================================================== */
+.activity-icon.is-debit {
+  background-color: #fde8e8;
+  color: var(--color-negative);
+}
+
+.activity-amount.is-debit {
+  color: var(--color-ink);
+}
+
+.loan-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-sm) 0 var(--space-md);
+}
+
+.loan-progress-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-canvas-soft);
+  overflow: hidden;
+}
+
+.loan-progress-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 220ms ease;
+}
+
+.loan-progress-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-body);
+}
+
+.loan-pay-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.loan-pay-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-body);
+}
+
+.service-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+@media (max-width: 768px) {
+  .service-mode-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.service-mode-btn {
+  background-color: var(--color-canvas);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.service-mode-btn.active {
+  border-color: var(--color-ink);
+  background-color: var(--color-canvas);
+}
+
+.service-mode-text strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--color-ink);
+}
+
+.service-mode-text span {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--color-mute);
+}
+
+.quick-amt-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.qris-viewfinder {
+  background-color: var(--color-canvas-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.qris-frame-box {
+  width: 100%;
+  max-width: 260px;
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--color-ink);
+  background-color: var(--color-canvas);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.qris-preset-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qris-preset-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-body);
+}

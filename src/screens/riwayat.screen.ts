@@ -1,9 +1,9 @@
 import { formatIDR } from '../services/format.service.ts';
 import { ledgerService } from '../services/ledger.service.ts';
-import type { ProductKind } from '../types/account.ts';
+import type { LedgerCategory } from '../types/transaction.ts';
 import { renderLucideIcons } from '../ui/icons.ts';
 
-let activeFilter: 'all' | ProductKind = 'all';
+let activeFilter: 'all' | LedgerCategory = 'all';
 let searchQuery = '';
 
 /**
@@ -37,13 +37,15 @@ export function renderRiwayatScreen(container: HTMLElement): void {
           </div>
 
           <div class="filter-chip-row">
-            ${(['all', 'tabungan', 'deposito', 'giro'] as const)
+            ${(['all', 'tabungan', 'deposito', 'giro', 'transaksi', 'kredit'] as const)
               .map((key) => {
-                const labels = {
+                const labels: Record<'all' | LedgerCategory, string> = {
                   all: 'Semua',
                   tabungan: 'Tabungan',
                   deposito: 'Deposito',
                   giro: 'Giro',
+                  transaksi: 'Transaksi',
+                  kredit: 'Kredit',
                 };
                 return `<button type="button" class="filter-chip ${activeFilter === key ? 'active' : ''}" data-tx-filter="${key}">${labels[key]}</button>`;
               })
@@ -56,20 +58,21 @@ export function renderRiwayatScreen(container: HTMLElement): void {
             filtered.length > 0
               ? `<ul class="activity-list">
                   ${filtered
-                    .map(
-                      (tx) => `
+                    .map((tx) => {
+                      const isDebit = tx.type === 'DEBIT';
+                      return `
                       <li class="activity-row">
                         <div class="activity-left">
-                          <span class="activity-icon"><i data-lucide="arrow-down-left" width="16" height="16"></i></span>
+                          <span class="activity-icon ${isDebit ? 'is-debit' : ''}"><i data-lucide="${isDebit ? 'arrow-up-right' : 'arrow-down-left'}" width="16" height="16"></i></span>
                           <div>
                             <strong class="activity-title">${tx.description}</strong>
                             <span class="activity-sub">${tx.accountNumber} • ${tx.timestamp}</span>
                           </div>
                         </div>
-                        <span class="activity-amount is-credit">+ ${formatIDR(tx.amount)}</span>
+                        <span class="activity-amount ${isDebit ? 'is-debit' : 'is-credit'}">${isDebit ? '-' : '+'} ${formatIDR(tx.amount)}</span>
                       </li>
-                    `
-                    )
+                    `;
+                    })
                     .join('')}
                 </ul>`
               : `<div class="empty-inline">
@@ -94,7 +97,7 @@ export function renderRiwayatScreen(container: HTMLElement): void {
 
     container.querySelectorAll<HTMLButtonElement>('[data-tx-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        activeFilter = btn.dataset.txFilter as 'all' | ProductKind;
+        activeFilter = btn.dataset.txFilter as 'all' | LedgerCategory;
         draw();
       });
     });

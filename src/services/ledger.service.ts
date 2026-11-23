@@ -1,6 +1,5 @@
 import { createSeedLedger } from '../config/seed-data.ts';
-import type { ProductKind } from '../types/account.ts';
-import type { LedgerEntryType, LedgerTransaction } from '../types/transaction.ts';
+import type { LedgerCategory, LedgerEntryType, LedgerTransaction } from '../types/transaction.ts';
 import { formatDateTimeID } from './format.service.ts';
 import { loadFromSession, saveToSession } from './storage.service.ts';
 
@@ -42,7 +41,7 @@ class LedgerService {
   }
 
   public recordEntry(params: {
-    productKind: ProductKind;
+    productKind: LedgerCategory;
     accountNumber: string;
     description: string;
     amount: number;

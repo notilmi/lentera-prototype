@@ -1,5 +1,6 @@
-import { PRODUCT_RULES, getDepositRateByTenor } from '../config/product-rules.ts';
+import { LOAN_RULES, PRODUCT_RULES, getDepositRateByTenor } from '../config/product-rules.ts';
 import type { DepositCalculationResult } from '../types/form.ts';
+import type { LoanKind, LoanSimulationResult } from '../types/loan.ts';
 
 /**
  * Tanggung jawab tunggal: Menghitung proyeksi bunga kotor, pajak 20%, bunga bersih,
@@ -25,5 +26,39 @@ export function calculateDepositYield(
     taxAmount: Math.round(taxAmount),
     netInterest: Math.round(netInterest),
     maturityTotal: Math.round(maturityTotal),
+  };
+}
+
+/**
+ * Menghitung simulasi angsuran kredit flat per bulan, biaya provisi,
+ * serta total dana bersih yang dicairkan ke rekening nasabah.
+ */
+export function calculateLoanInstallment(
+  kind: LoanKind,
+  principal: number,
+  tenorMonths: number
+): LoanSimulationResult {
+  const rule = LOAN_RULES[kind];
+  const safePrincipal = Math.max(0, Number.isFinite(principal) ? principal : 0);
+  const safeTenor = Math.max(1, tenorMonths);
+
+  const monthlyPrincipal = Math.round(safePrincipal / safeTenor);
+  const monthlyInterest = Math.round(safePrincipal * (rule.monthlyRatePercent / 100));
+  const monthlyInstallment = monthlyPrincipal + monthlyInterest;
+  const provisionFee = Math.round(safePrincipal * (rule.provisionPercent / 100));
+  const netDisbursement = Math.max(0, safePrincipal - provisionFee);
+  const totalRepayment = monthlyInstallment * safeTenor;
+
+  return {
+    kind,
+    principal: safePrincipal,
+    tenorMonths: safeTenor,
+    monthlyRatePercent: rule.monthlyRatePercent,
+    monthlyPrincipal,
+    monthlyInterest,
+    monthlyInstallment,
+    provisionFee,
+    netDisbursement,
+    totalRepayment,
   };
 }

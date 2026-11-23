@@ -77,11 +77,11 @@ export function renderHomeScreen(container: HTMLElement): void {
         </button>
         <button type="button" class="quick-action-tile" id="qa-transfer">
           <span class="qa-circle"><i data-lucide="send" width="20" height="20"></i></span>
-          <span class="qa-label">Transfer <small class="qa-tag">Soon</small></span>
+          <span class="qa-label">Transfer</span>
         </button>
         <button type="button" class="quick-action-tile" id="qa-qris">
           <span class="qa-circle"><i data-lucide="qr-code" width="20" height="20"></i></span>
-          <span class="qa-label">QRIS <small class="qa-tag">Soon</small></span>
+          <span class="qa-label">QRIS</span>
         </button>
       </section>
 
@@ -134,20 +134,21 @@ export function renderHomeScreen(container: HTMLElement): void {
         <div class="surface-plate">
           <ul class="activity-list">
             ${recentTx
-              .map(
-                (tx) => `
+              .map((tx) => {
+                const isDebit = tx.type === 'DEBIT';
+                return `
                 <li class="activity-row">
                   <div class="activity-left">
-                    <span class="activity-icon"><i data-lucide="arrow-down-left" width="16" height="16"></i></span>
+                    <span class="activity-icon ${isDebit ? 'is-debit' : ''}"><i data-lucide="${isDebit ? 'arrow-up-right' : 'arrow-down-left'}" width="16" height="16"></i></span>
                     <div>
                       <strong class="activity-title">${tx.description}</strong>
                       <span class="activity-sub">${tx.accountNumber} • ${tx.timestamp}</span>
                     </div>
                   </div>
-                  <span class="activity-amount is-credit">+ ${formatIDR(tx.amount)}</span>
+                  <span class="activity-amount ${isDebit ? 'is-debit' : 'is-credit'}">${isDebit ? '-' : '+'} ${formatIDR(tx.amount)}</span>
                 </li>
-              `
-              )
+              `;
+              })
               .join('')}
           </ul>
         </div>
@@ -170,11 +171,11 @@ export function renderHomeScreen(container: HTMLElement): void {
   });
 
   document.getElementById('qa-transfer')?.addEventListener('click', () => {
-    routerService.navigate('transaksi');
+    routerService.navigate('transaksi', { txMode: 'transfer' });
   });
 
   document.getElementById('qa-qris')?.addEventListener('click', () => {
-    routerService.navigate('transaksi');
+    routerService.navigate('transaksi', { txMode: 'qris' });
   });
 
   document.getElementById('home-see-simpanan')?.addEventListener('click', () => {

@@ -53,3 +53,53 @@ export function getDepositRateByTenor(tenorMonths: number): number {
   const match = PRODUCT_RULES.deposit.tenors.find((t) => t.months === tenorMonths);
   return match ? match.ratePa : PRODUCT_RULES.deposit.tenors[2].ratePa;
 }
+
+export const LOAN_RULES = {
+  konsumtif: {
+    productName: 'Kredit Konsumtif Lentera',
+    contractPrefix: 'KR-KSM',
+    minAmount: 5_000_000,
+    maxAmount: 200_000_000,
+    monthlyRatePercent: 0.88,
+    provisionPercent: 1.0,
+    tenors: [6, 12, 24, 36, 48, 60] as const,
+  },
+  umkm: {
+    productName: 'Kredit Produktif / UMKM',
+    contractPrefix: 'KR-UMK',
+    minAmount: 10_000_000,
+    maxAmount: 500_000_000,
+    monthlyRatePercent: 0.75,
+    provisionPercent: 0.75,
+    tenors: [12, 24, 36, 48, 60] as const,
+  },
+} as const;
+
+export const TRANSACTION_RULES = {
+  transferBanks: [
+    { code: 'LENTERA', name: 'Sesama LENTERA Bank', fee: 0 },
+    { code: 'BCA', name: 'Bank Central Asia (BCA)', fee: 2_500 },
+    { code: 'MANDIRI', name: 'Bank Mandiri', fee: 2_500 },
+    { code: 'BNI', name: 'Bank Negara Indonesia (BNI)', fee: 2_500 },
+    { code: 'BRI', name: 'Bank Rakyat Indonesia (BRI)', fee: 2_500 },
+  ],
+  qrisMerchants: [
+    { id: 'kopi-lentera', name: 'Kopi Lentera Nusantara', city: 'Palembang', defaultAmount: 35_000 },
+    { id: 'kantin-polsri', name: 'Kantin Kampus Polsri', city: 'Palembang', defaultAmount: 22_000 },
+    { id: 'mart-sejahtera', name: 'Lentera Mart 24 Jam', city: 'Palembang', defaultAmount: 85_000 },
+  ],
+  billCategories: [
+    { id: 'pln', label: 'Listrik PLN Pascabayar', fee: 2_500, sampleAmount: 245_000 },
+    { id: 'pdam', label: 'Air PDAM Tirta Musi', fee: 2_500, sampleAmount: 118_000 },
+    { id: 'internet', label: 'Internet & TV Kabel', fee: 2_500, sampleAmount: 325_000 },
+    { id: 'bpjs', label: 'BPJS Kesehatan', fee: 2_500, sampleAmount: 150_000 },
+    { id: 'pulsa', label: 'Pulsa & Paket Data', fee: 1_500, sampleAmount: 100_000 },
+  ],
+  ewallets: [
+    { id: 'gopay', name: 'GoPay', fee: 1_000 },
+    { id: 'ovo', name: 'OVO', fee: 1_000 },
+    { id: 'dana', name: 'DANA', fee: 1_000 },
+    { id: 'shopeepay', name: 'ShopeePay', fee: 1_000 },
+  ],
+  quickAmounts: [50_000, 100_000, 250_000, 500_000] as const,
+} as const;

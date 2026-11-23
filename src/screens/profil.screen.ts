@@ -3,6 +3,7 @@ import { accountService } from '../services/account.service.ts';
 import { authService } from '../services/auth.service.ts';
 import { extractInitials } from '../services/format.service.ts';
 import { ledgerService } from '../services/ledger.service.ts';
+import { loanService } from '../services/loan.service.ts';
 import { routerService } from '../services/router.service.ts';
 import { modalController } from '../ui/modal.controller.ts';
 
@@ -82,6 +83,7 @@ export function renderProfilScreen(container: HTMLElement): void {
   document.getElementById('profil-reset-btn')?.addEventListener('click', () => {
     accountService.resetToSeed();
     ledgerService.resetToSeed();
+    loanService.reset();
     modalController.show({
       badge: 'Reset Berhasil',
       title: 'Data Simulasi Dikembalikan',

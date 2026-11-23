@@ -14,8 +14,11 @@ export type ScreenRoute = MainTabRoute | SubScreenRoute;
 
 export type SimpananSubTab = 'accounts' | 'catalog' | 'calculator';
 
+export type TransaksiMode = 'transfer' | 'qris' | 'tagihan' | 'ewallet';
+
 export interface RouteParams {
   simpananTab?: SimpananSubTab;
+  txMode?: TransaksiMode;
   accountId?: string;
   product?: ProductKind;
   prefillAmount?: number;
