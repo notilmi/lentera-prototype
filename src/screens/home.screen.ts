@@ -4,6 +4,7 @@ import { ledgerService } from '../services/ledger.service.ts';
 import { routerService } from '../services/router.service.ts';
 import type { BankAccount } from '../types/account.ts';
 import { renderLucideIcons } from '../ui/icons.ts';
+import { qrisFlowController } from '../ui/qris-flow.controller.ts';
 
 let hideBalance = false;
 
@@ -175,7 +176,12 @@ export function renderHomeScreen(container: HTMLElement): void {
   });
 
   document.getElementById('qa-qris')?.addEventListener('click', () => {
-    routerService.navigate('transaksi', { txMode: 'qris' });
+    qrisFlowController.open({
+      onComplete: () => {
+        renderHomeScreen(container);
+        renderLucideIcons();
+      },
+    });
   });
 
   document.getElementById('home-see-simpanan')?.addEventListener('click', () => {

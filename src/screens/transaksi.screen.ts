@@ -5,6 +5,7 @@ import { transferService } from '../services/transfer.service.ts';
 import type { RouteParams, TransaksiMode } from '../types/navigation.ts';
 import { renderLucideIcons } from '../ui/icons.ts';
 import { modalController } from '../ui/modal.controller.ts';
+import { qrisFlowController } from '../ui/qris-flow.controller.ts';
 
 interface ServiceModeMeta {
   id: TransaksiMode;
@@ -21,7 +22,6 @@ const SERVICE_MODES: readonly ServiceModeMeta[] = [
 ];
 
 let activeMode: TransaksiMode = 'transfer';
-let selectedQrisMerchantId: string = TRANSACTION_RULES.qrisMerchants[0].id;
 
 function renderSourceAccountField(): string {
   const accounts = accountService.getTransactableAccounts();
@@ -102,58 +102,36 @@ function renderTransferForm(): string {
 }
 
 function renderQrisForm(): string {
-  const merchant =
-    TRANSACTION_RULES.qrisMerchants.find((m) => m.id === selectedQrisMerchantId) ??
-    TRANSACTION_RULES.qrisMerchants[0];
-
   return `
     <div class="pane-header">
       <div>
         <h3>Pembayaran QRIS</h3>
-        <p>Pilih merchant QRIS simulasi atau masukkan nominal transaksi secara langsung.</p>
+        <p>Scan QRIS langsung menggunakan kamera perangkat dengan alur konfirmasi & PIN 6-digit.</p>
       </div>
       <span class="pill-badge badge-lime">Bebas Biaya</span>
     </div>
 
     <div class="qris-viewfinder">
       <div class="qris-frame-box">
-        <i data-lucide="qr-code" width="44" height="44"></i>
-        <span>Simulasi Kamera QRIS Aktif</span>
+        <i data-lucide="scan-line" width="44" height="44"></i>
+        <span>Kamera Scanner QRIS Siap</span>
       </div>
+      <button type="button" class="btn btn-primary btn-lg w-full" id="qris-launch-camera-btn">
+        <i data-lucide="camera" width="18" height="18"></i>
+        Buka Kamera & Scan QRIS
+      </button>
       <div class="qris-preset-list">
-        <span class="qris-preset-label">Merchant Terdeteksi (Klik untuk pilih):</span>
+        <span class="qris-preset-label">Atau langsung bayar ke merchant demo:</span>
         <div class="filter-chip-row">
           ${TRANSACTION_RULES.qrisMerchants
             .map(
               (m) =>
-                `<button type="button" class="filter-chip ${m.id === merchant.id ? 'active' : ''}" data-qris-merchant="${m.id}">${m.name}</button>`
+                `<button type="button" class="filter-chip" data-qris-launch-merchant="${m.id}">${m.name} (${formatIDR(m.defaultAmount)})</button>`
             )
             .join('')}
         </div>
       </div>
     </div>
-
-    <form id="tx-form-qris">
-      <div class="form-grid">
-        ${renderSourceAccountField()}
-        <div class="form-group">
-          <label for="qr-merchant-name">Nama Merchant</label>
-          <input type="text" id="qr-merchant-name" class="input-control" value="${merchant.name} (${merchant.city})" readonly />
-        </div>
-        <div class="form-group">
-          <label for="qr-amount">Nominal Pembayaran</label>
-          <div class="input-currency-wrap">
-            <span class="currency-prefix">Rp</span>
-            <input type="number" id="qr-amount" class="input-control" min="1000" step="1000" value="${merchant.defaultAmount}" required />
-          </div>
-          ${renderQuickAmountPills('qr-amount')}
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary btn-lg w-full" style="margin-top: 16px;">
-        <i data-lucide="qr-code" width="18" height="18"></i>
-        Bayar via QRIS
-      </button>
-    </form>
   `;
 }
 
@@ -335,20 +313,16 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
       });
     });
 
-    container.querySelectorAll<HTMLButtonElement>('[data-quick-amt]').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const targetId = btn.dataset.amtTarget;
-        const amt = btn.dataset.quickAmt;
-        if (!targetId || !amt) return;
-        const input = document.getElementById(targetId) as HTMLInputElement | null;
-        if (input) input.value = amt;
-      });
+    document.getElementById('qris-launch-camera-btn')?.addEventListener('click', () => {
+      qrisFlowController.open({ onComplete: () => redraw() });
     });
 
-    container.querySelectorAll<HTMLButtonElement>('[data-qris-merchant]').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('[data-qris-launch-merchant]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        selectedQrisMerchantId = btn.dataset.qrisMerchant ?? TRANSACTION_RULES.qrisMerchants[0].id;
-        redraw();
+        qrisFlowController.open({
+          merchantId: btn.dataset.qrisLaunchMerchant,
+          onComplete: () => redraw(),
+        });
       });
     });
 
@@ -383,21 +357,14 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
       showTxReceipt('Transfer Dana Terkirim', res.receipt);
     });
 
-    document.getElementById('tx-form-qris')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const merchantName = (document.getElementById('qr-merchant-name') as HTMLInputElement).value;
-      const amount = Number((document.getElementById('qr-amount') as HTMLInputElement).value);
-
-      const res = transferService.execute({
-        mode: 'qris',
-        sourceAccountId: getSourceAccountId(),
-        targetLabel: merchantName,
-        description: `QRIS ${merchantName}`,
-        amount,
-        fee: 0,
+    container.querySelectorAll<HTMLButtonElement>('[data-quick-amt]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.amtTarget;
+        const amt = btn.dataset.quickAmt;
+        if (!targetId || !amt) return;
+        const input = document.getElementById(targetId) as HTMLInputElement | null;
+        if (input) input.value = amt;
       });
-      if (!res.ok) return showTxError(res.error);
-      showTxReceipt('Pembayaran QRIS Berhasil', res.receipt);
     });
 
     document.getElementById('tx-form-tagihan')?.addEventListener('submit', (e) => {

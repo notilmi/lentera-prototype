@@ -274,15 +274,15 @@ export function renderKreditScreen(container: HTMLElement): void {
 
     container.innerHTML = `
       <div class="screen-stack">
-        <div class="sub-tabs-bar" role="tablist">
-          <button type="button" class="sub-tab-btn ${activeTab === 'loans' ? 'active' : ''}" data-kr-tab="loans">
-            Pinjaman Saya (${loanService.getLoans().length})
+        <div class="segmented-bar" role="tablist">
+          <button type="button" class="seg-btn ${activeTab === 'loans' ? 'active' : ''}" data-kr-tab="loans">
+            <i data-lucide="landmark" width="16" height="16"></i> Pinjaman (${loanService.getLoans().length})
           </button>
-          <button type="button" class="sub-tab-btn ${activeTab === 'apply' ? 'active' : ''}" data-kr-tab="apply">
-            Ajukan Kredit
+          <button type="button" class="seg-btn ${activeTab === 'apply' ? 'active' : ''}" data-kr-tab="apply">
+            <i data-lucide="plus-circle" width="16" height="16"></i> Ajukan Kredit
           </button>
-          <button type="button" class="sub-tab-btn ${activeTab === 'simulator' ? 'active' : ''}" data-kr-tab="simulator">
-            Simulasi Kredit
+          <button type="button" class="seg-btn ${activeTab === 'simulator' ? 'active' : ''}" data-kr-tab="simulator">
+            <i data-lucide="calculator" width="16" height="16"></i> Simulasi
           </button>
         </div>
 
