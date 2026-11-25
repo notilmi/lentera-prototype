@@ -61,10 +61,16 @@ export const LOAN_RULES = {
     contractPrefix: 'KR-KSM',
     minAmount: 5_000_000,
     maxAmount: 200_000_000,
-    monthlyRatePercent: 0.88,
     provisionPercent: 1.0,
     maxDsrPercent: 40,
-    tenors: [6, 12, 24, 36, 48, 60] as const,
+    tenors: [
+      { months: 6, monthlyRatePercent: 0.88 },
+      { months: 12, monthlyRatePercent: 0.88 },
+      { months: 24, monthlyRatePercent: 0.95 },
+      { months: 36, monthlyRatePercent: 0.95 },
+      { months: 48, monthlyRatePercent: 1.05 },
+      { months: 60, monthlyRatePercent: 1.05 },
+    ] as const,
     requirements: ['KTP & NIK Terverifikasi', 'Penghasilan Tetap / Slip Gaji', 'Rasio Cicilan ≤ 40% Penghasilan'],
   },
   umkm: {
@@ -73,14 +79,25 @@ export const LOAN_RULES = {
     contractPrefix: 'KR-UMK',
     minAmount: 10_000_000,
     maxAmount: 500_000_000,
-    monthlyRatePercent: 0.75,
     provisionPercent: 0.75,
     maxDsrPercent: 25,
     minBusinessYears: 1,
-    tenors: [12, 24, 36, 48, 60] as const,
+    tenors: [
+      { months: 12, monthlyRatePercent: 0.75 },
+      { months: 24, monthlyRatePercent: 0.82 },
+      { months: 36, monthlyRatePercent: 0.82 },
+      { months: 48, monthlyRatePercent: 0.9 },
+      { months: 60, monthlyRatePercent: 0.9 },
+    ] as const,
     requirements: ['NIB / Surat Keterangan Usaha', 'Usaha Berjalan Min. 1 Tahun', 'Rasio Cicilan ≤ 25% Omzet/Bulan'],
   },
 } as const;
+
+export function getLoanRateByTenor(kind: 'konsumtif' | 'umkm', tenorMonths: number): number {
+  const tenors = LOAN_RULES[kind].tenors;
+  const match = tenors.find((t) => t.months === tenorMonths);
+  return match ? match.monthlyRatePercent : tenors[0].monthlyRatePercent;
+}
 
 export const TRANSACTION_RULES = {
   transferBanks: [

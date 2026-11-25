@@ -116,7 +116,7 @@ function renderSegmentSelectorCards(): string {
                 <span class="pill-badge ${isSelected ? 'badge-lime' : ''}">${r.segmentLabel}</span>
               </div>
               <h3>${r.productName}</h3>
-              <p class="catalog-desc">Plafon ${formatIDR(r.minAmount)} – ${formatIDR(r.maxAmount)} • Bunga ${r.monthlyRatePercent}% / bln</p>
+              <p class="catalog-desc">Plafon ${formatIDR(r.minAmount)} – ${formatIDR(r.maxAmount)} • Mulai ${r.tenors[0].monthlyRatePercent.toFixed(2)}% / bln</p>
               <ul class="segment-req-list">
                 ${r.requirements.map((req) => `<li><i data-lucide="check" width="13" height="13"></i> ${req}</li>`).join('')}
               </ul>
@@ -185,8 +185,8 @@ function renderApplyTab(): string {
   const rule = LOAN_RULES[selectedKind];
   const accounts = accountService.getTransactableAccounts();
   const clampedAmount = Math.min(rule.maxAmount, Math.max(rule.minAmount, applyAmount));
-  if (!rule.tenors.includes(applyTenor as never)) {
-    applyTenor = rule.tenors[1] ?? rule.tenors[0];
+  if (!rule.tenors.some((t) => t.months === applyTenor)) {
+    applyTenor = rule.tenors[1]?.months ?? rule.tenors[0].months;
   }
   const sim = calculateLoanInstallment(selectedKind, clampedAmount, applyTenor);
   const elig = loanService.evaluateEligibility(
@@ -208,7 +208,7 @@ function renderApplyTab(): string {
           <h3>Formulir ${rule.productName}</h3>
           <p>Segmen <strong>${rule.segmentLabel}</strong> • Dilengkapi evaluasi kelayakan DSR otomatis.</p>
         </div>
-        <span class="pill-badge badge-lime">Bunga ${rule.monthlyRatePercent}% / bln</span>
+        <span class="pill-badge badge-lime" id="kr-live-rate-badge">Bunga ${sim.monthlyRatePercent.toFixed(2)}% / bln</span>
       </div>
 
       <form id="kredit-apply-form">
@@ -224,10 +224,13 @@ function renderApplyTab(): string {
           </div>
 
           <div class="form-group">
-            <label for="kr-tenor">Tenor Angsuran</label>
+            <label for="kr-tenor">Tenor & Suku Bunga</label>
             <select id="kr-tenor" class="input-control" required>
               ${rule.tenors
-                .map((m) => `<option value="${m}" ${m === applyTenor ? 'selected' : ''}>${m} Bulan</option>`)
+                .map(
+                  (t) =>
+                    `<option value="${t.months}" ${t.months === applyTenor ? 'selected' : ''}>${t.months} Bulan — ${t.monthlyRatePercent.toFixed(2)}% / bln</option>`
+                )
                 .join('')}
             </select>
           </div>
@@ -283,8 +286,8 @@ function renderApplyTab(): string {
 function renderSimulatorTab(): string {
   const rule = LOAN_RULES[simKind];
   const clamped = Math.min(rule.maxAmount, Math.max(rule.minAmount, simAmount));
-  if (!rule.tenors.includes(simTenor as never)) {
-    simTenor = rule.tenors[1] ?? rule.tenors[0];
+  if (!rule.tenors.some((t) => t.months === simTenor)) {
+    simTenor = rule.tenors[1]?.months ?? rule.tenors[0].months;
   }
   const sim = calculateLoanInstallment(simKind, clamped, simTenor);
 
@@ -292,10 +295,10 @@ function renderSimulatorTab(): string {
     <div class="surface-plate calc-plate">
       <div class="filter-chip-row">
         <button type="button" class="filter-chip ${simKind === 'konsumtif' ? 'active' : ''}" data-sim-kind="konsumtif">
-          Individu / Konsumtif (${LOAN_RULES.konsumtif.monthlyRatePercent}%/bln)
+          Individu / Konsumtif (Mulai ${LOAN_RULES.konsumtif.tenors[0].monthlyRatePercent.toFixed(2)}%/bln)
         </button>
         <button type="button" class="filter-chip ${simKind === 'umkm' ? 'active' : ''}" data-sim-kind="umkm">
-          UMKM / Modal Kerja (${LOAN_RULES.umkm.monthlyRatePercent}%/bln)
+          UMKM / Modal Kerja (Mulai ${LOAN_RULES.umkm.tenors[0].monthlyRatePercent.toFixed(2)}%/bln)
         </button>
       </div>
 
@@ -318,10 +321,10 @@ function renderSimulatorTab(): string {
         <div class="tenor-grid">
           ${rule.tenors
             .map(
-              (m) => `
-              <button type="button" class="tenor-btn ${m === simTenor ? 'active' : ''}" data-sim-tenor="${m}">
-                ${m} Bulan
-                <small>${rule.monthlyRatePercent}% / bln</small>
+              (t) => `
+              <button type="button" class="tenor-btn ${t.months === simTenor ? 'active' : ''}" data-sim-tenor="${t.months}">
+                ${t.months} Bulan
+                <small>${t.monthlyRatePercent.toFixed(2)}% / bln</small>
               </button>
             `
             )
@@ -470,9 +473,11 @@ export function renderKreditScreen(container: HTMLElement): void {
       const instEl = document.getElementById('kr-live-installment');
       const dsrEl = document.getElementById('kr-live-dsr');
       const netEl = document.getElementById('kr-live-net');
+      const rateBadgeEl = document.getElementById('kr-live-rate-badge');
       const bannerEl = document.getElementById('kr-live-elig-banner');
 
       if (instEl) instEl.textContent = formatIDR(sim.monthlyInstallment);
+      if (rateBadgeEl) rateBadgeEl.textContent = `Bunga ${sim.monthlyRatePercent.toFixed(2)}% / bln`;
       if (dsrEl) {
         dsrEl.textContent = `${elig.dsrPercent}% / maks ${elig.maxDsrPercent}%`;
         dsrEl.className = elig.eligible ? 'text-positive' : 'text-negative';

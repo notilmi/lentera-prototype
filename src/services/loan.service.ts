@@ -170,7 +170,7 @@ class LoanService {
       productName: rule.productName,
       principal: payload.principal,
       tenorMonths: payload.tenorMonths,
-      monthlyRatePercent: rule.monthlyRatePercent,
+      monthlyRatePercent: simulation.monthlyRatePercent,
       monthlyInstallment: simulation.monthlyInstallment,
       paidInstallments: 0,
       remainingBalance: simulation.totalRepayment,

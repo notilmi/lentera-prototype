@@ -1,4 +1,4 @@
-import { LOAN_RULES, PRODUCT_RULES, getDepositRateByTenor } from '../config/product-rules.ts';
+import { LOAN_RULES, PRODUCT_RULES, getDepositRateByTenor, getLoanRateByTenor } from '../config/product-rules.ts';
 import type { DepositCalculationResult } from '../types/form.ts';
 import type { LoanKind, LoanSimulationResult } from '../types/loan.ts';
 
@@ -41,9 +41,10 @@ export function calculateLoanInstallment(
   const rule = LOAN_RULES[kind];
   const safePrincipal = Math.max(0, Number.isFinite(principal) ? principal : 0);
   const safeTenor = Math.max(1, tenorMonths);
+  const monthlyRatePercent = getLoanRateByTenor(kind, safeTenor);
 
   const monthlyPrincipal = Math.round(safePrincipal / safeTenor);
-  const monthlyInterest = Math.round(safePrincipal * (rule.monthlyRatePercent / 100));
+  const monthlyInterest = Math.round(safePrincipal * (monthlyRatePercent / 100));
   const monthlyInstallment = monthlyPrincipal + monthlyInterest;
   const provisionFee = Math.round(safePrincipal * (rule.provisionPercent / 100));
   const netDisbursement = Math.max(0, safePrincipal - provisionFee);
@@ -53,7 +54,7 @@ export function calculateLoanInstallment(
     kind,
     principal: safePrincipal,
     tenorMonths: safeTenor,
-    monthlyRatePercent: rule.monthlyRatePercent,
+    monthlyRatePercent,
     monthlyPrincipal,
     monthlyInterest,
     monthlyInstallment,
