@@ -108,14 +108,14 @@ function renderCatalogTab(): string {
       <article class="catalog-card">
         <div class="catalog-card-head">
           <span class="tile-icon-badge"><i data-lucide="trending-up" width="20" height="20"></i></span>
-          <span class="pill-badge">s/d 6.00% p.a.</span>
+          <span class="pill-badge">s/d 4.75% p.a.</span>
         </div>
         <h3>Deposito Lentera Maxima</h3>
         <p class="catalog-desc">Simpanan berjangka dengan imbal hasil pasti, pilihan ARO fleksibel, dan e-Bilyet resmi.</p>
         <ul class="spec-list">
           <li><span>Min. Penempatan</span><strong>Rp 1.000.000</strong></li>
           <li><span>Pilihan Tenor</span><strong>1, 3, 6, 12 Bulan</strong></li>
-          <li><span>Suku Bunga</span><strong>4.50% – 6.00% p.a.</strong></li>
+          <li><span>Suku Bunga</span><strong>3.50% – 4.75% p.a.</strong></li>
           <li><span>Jatuh Tempo</span><strong>ARO / ARO+ / Non-ARO</strong></li>
         </ul>
         <button type="button" class="btn btn-tertiary w-full" data-apply-product="deposito">

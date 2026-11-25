@@ -110,7 +110,7 @@ export function renderLandingScreen(container: HTMLElement): void {
             <article class="catalog-card">
               <div class="catalog-card-head">
                 <span class="tile-icon-badge"><i data-lucide="trending-up" width="20" height="20"></i></span>
-                <span class="pill-badge">s/d 6.00% p.a.</span>
+                <span class="pill-badge">s/d 4.75% p.a.</span>
               </div>
               <h3>Deposito Lentera Maxima</h3>
               <p class="catalog-desc">Simpanan berjangka dengan pilihan tenor 1, 3, 6, hingga 12 bulan dan e-Bilyet digital resmi.</p>

@@ -71,7 +71,7 @@ function renderDepositoForm(prefillAmount?: number, prefillTenor?: number): stri
     <div class="pane-header">
       <div>
         <h3>Penempatan Deposito Maxima</h3>
-        <p>Imbal hasil pasti hingga 6.00% p.a. dengan penerbitan e-Bilyet digital.</p>
+        <p>Imbal hasil pasti hingga 4.75% p.a. dengan penerbitan e-Bilyet digital.</p>
       </div>
       <span class="pill-badge badge-lime">Min. Rp 1.000.000</span>
     </div>

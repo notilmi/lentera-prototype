@@ -250,16 +250,17 @@ function renderApplyTab(): string {
           </div>
         </div>
 
-        <div class="calc-result-grid" style="margin: 16px 0;">
-          <div class="calc-stat-box is-highlight">
+        <div class="calc-result-panel" style="margin: 16px 0;">
+          <div class="calc-result-row">
             <span>Estimasi Cicilan / Bulan</span>
             <strong id="kr-live-installment">${formatIDR(sim.monthlyInstallment)}</strong>
           </div>
-          <div class="calc-stat-box">
+          <div class="calc-result-row">
             <span>Rasio Cicilan (DSR)</span>
             <strong id="kr-live-dsr" class="${elig.eligible ? 'text-positive' : 'text-negative'}">${elig.dsrPercent}% / maks ${elig.maxDsrPercent}%</strong>
           </div>
-          <div class="calc-stat-box">
+          <hr class="calc-divider" />
+          <div class="calc-result-row">
             <span>Dana Cair ke Rekening</span>
             <strong id="kr-live-net" class="text-positive">${formatIDR(sim.netDisbursement)}</strong>
           </div>
@@ -314,13 +315,13 @@ function renderSimulatorTab(): string {
 
       <div class="form-group">
         <label>Pilih Tenor Angsuran</label>
-        <div class="tenor-pill-row">
+        <div class="tenor-grid">
           ${rule.tenors
             .map(
               (m) => `
-              <button type="button" class="tenor-pill ${m === simTenor ? 'active' : ''}" data-sim-tenor="${m}">
-                <strong>${m} Bln</strong>
-                <span>${rule.monthlyRatePercent}%/bln</span>
+              <button type="button" class="tenor-btn ${m === simTenor ? 'active' : ''}" data-sim-tenor="${m}">
+                ${m} Bulan
+                <small>${rule.monthlyRatePercent}% / bln</small>
               </button>
             `
             )
@@ -328,28 +329,21 @@ function renderSimulatorTab(): string {
         </div>
       </div>
 
-      <div class="calc-result-grid">
-        <div class="calc-stat-box is-highlight">
-          <span>Cicilan per Bulan</span>
-          <strong id="sim-loan-monthly">${formatIDR(sim.monthlyInstallment)}</strong>
-        </div>
-        <div class="calc-stat-box">
-          <span>Pokok / Bulan</span>
-          <strong id="sim-loan-principal">${formatIDR(sim.monthlyPrincipal)}</strong>
-        </div>
-        <div class="calc-stat-box">
-          <span>Bunga / Bulan</span>
-          <strong id="sim-loan-interest">${formatIDR(sim.monthlyInterest)}</strong>
-        </div>
-        <div class="calc-stat-box">
-          <span>Dana Cair Bersih</span>
-          <strong id="sim-loan-net" class="text-positive">${formatIDR(sim.netDisbursement)}</strong>
+      <div class="calc-result-panel">
+        <div class="calc-result-row"><span>Pokok / Bulan</span><strong id="sim-loan-principal">${formatIDR(sim.monthlyPrincipal)}</strong></div>
+        <div class="calc-result-row"><span>Bunga / Bulan</span><strong id="sim-loan-interest">${formatIDR(sim.monthlyInterest)}</strong></div>
+        <div class="calc-result-row"><span>Dana Cair Bersih</span><strong id="sim-loan-net" class="text-positive">${formatIDR(sim.netDisbursement)}</strong></div>
+        <hr class="calc-divider" />
+        <div class="calc-total-bar">
+          <div>
+            <small>Estimasi Cicilan per Bulan</small>
+            <div class="calc-total-value" id="sim-loan-monthly">${formatIDR(sim.monthlyInstallment)}</div>
+          </div>
+          <button type="button" class="btn btn-primary" id="kr-sim-apply-btn">
+            Ajukan Sekarang <i data-lucide="arrow-right" width="16" height="16"></i>
+          </button>
         </div>
       </div>
-
-      <button type="button" class="btn btn-primary btn-lg w-full" id="kr-sim-apply-btn">
-        Ajukan dengan Nominal Ini <i data-lucide="arrow-right" width="16" height="16"></i>
-      </button>
     </div>
   `;
 }

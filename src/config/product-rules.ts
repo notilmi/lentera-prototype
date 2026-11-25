@@ -21,10 +21,10 @@ export const PRODUCT_RULES = {
     maxSliderPlacement: 100_000_000,
     taxRate: 0.2,
     tenors: [
-      { months: 1, ratePa: 4.5, label: '1 Bulan' },
-      { months: 3, ratePa: 5.0, label: '3 Bulan' },
-      { months: 6, ratePa: 5.5, label: '6 Bulan' },
-      { months: 12, ratePa: 6.0, label: '12 Bulan' },
+      { months: 1, ratePa: 3.5, label: '1 Bulan' },
+      { months: 3, ratePa: 4.0, label: '3 Bulan' },
+      { months: 6, ratePa: 4.5, label: '6 Bulan' },
+      { months: 12, ratePa: 4.75, label: '12 Bulan' },
     ],
   },
   giro: {
