@@ -1743,3 +1743,70 @@
   border-radius: var(--radius-xl);
   padding: 16px;
 }
+
+/* ==========================================================================
+   KREDIT INDIVIDU VS UMKM — SEGMENT CARDS & ELIGIBILITY BANNER
+   ========================================================================== */
+.segment-compare-card {
+  background-color: var(--color-canvas);
+  border: 2px solid transparent;
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--transition-fast);
+}
+
+.segment-compare-card.active {
+  border-color: var(--color-ink);
+}
+
+.segment-compare-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.segment-req-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--color-body);
+}
+
+.segment-req-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.elig-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.elig-banner.is-ok {
+  background-color: var(--color-primary-pale);
+  color: var(--color-ink-deep);
+}
+
+.elig-banner.is-fail {
+  background-color: #fde8e8;
+  color: var(--color-negative-deep);
+}
+
+.text-negative {
+  color: var(--color-negative);
+}

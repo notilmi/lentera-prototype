@@ -57,21 +57,28 @@ export function getDepositRateByTenor(tenorMonths: number): number {
 export const LOAN_RULES = {
   konsumtif: {
     productName: 'Kredit Konsumtif Lentera',
+    segmentLabel: 'Pengguna Umum (Individu)',
     contractPrefix: 'KR-KSM',
     minAmount: 5_000_000,
     maxAmount: 200_000_000,
     monthlyRatePercent: 0.88,
     provisionPercent: 1.0,
+    maxDsrPercent: 40,
     tenors: [6, 12, 24, 36, 48, 60] as const,
+    requirements: ['KTP & NIK Terverifikasi', 'Penghasilan Tetap / Slip Gaji', 'Rasio Cicilan ≤ 40% Penghasilan'],
   },
   umkm: {
     productName: 'Kredit Produktif / UMKM',
+    segmentLabel: 'Pelaku Usaha (UMKM)',
     contractPrefix: 'KR-UMK',
     minAmount: 10_000_000,
     maxAmount: 500_000_000,
     monthlyRatePercent: 0.75,
     provisionPercent: 0.75,
+    maxDsrPercent: 25,
+    minBusinessYears: 1,
     tenors: [12, 24, 36, 48, 60] as const,
+    requirements: ['NIB / Surat Keterangan Usaha', 'Usaha Berjalan Min. 1 Tahun', 'Rasio Cicilan ≤ 25% Omzet/Bulan'],
   },
 } as const;
 

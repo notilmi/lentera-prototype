@@ -1,8 +1,13 @@
 import { LOAN_RULES } from '../config/product-rules.ts';
-import type { ActiveLoan, LoanApplicationPayload, LoanSimulationResult } from '../types/loan.ts';
+import type {
+  ActiveLoan,
+  LoanApplicationPayload,
+  LoanEligibilityResult,
+  LoanSimulationResult,
+} from '../types/loan.ts';
 import { accountService } from './account.service.ts';
 import { calculateLoanInstallment } from './calculator.service.ts';
-import { formatDateID } from './format.service.ts';
+import { formatDateID, formatIDR } from './format.service.ts';
 import { ledgerService } from './ledger.service.ts';
 import { loadFromSession, saveToSession } from './storage.service.ts';
 
@@ -17,8 +22,8 @@ function randomDigits(length: number): string {
 }
 
 /**
- * Tanggung jawab tunggal: Mengelola portofolio kredit nasabah (pengajuan,
- * pencairan dana ke rekening Simpanan, dan pembayaran angsuran bulanan).
+ * Tanggung jawab tunggal: Mengelola portofolio kredit nasabah (evaluasi kelayakan DSR
+ * Individu & UMKM, pengajuan, pencairan dana ke Simpanan, dan pembayaran angsuran).
  */
 class LoanService {
   private loans: ActiveLoan[];
@@ -31,18 +36,118 @@ class LoanService {
     return this.loans;
   }
 
+  public getActiveMonthlyObligation(): number {
+    return this.loans
+      .filter((l) => l.status === 'AKTIF')
+      .reduce((sum, l) => sum + l.monthlyInstallment, 0);
+  }
+
+  public evaluateEligibility(
+    payload: Pick<
+      LoanApplicationPayload,
+      'kind' | 'monthlyIncome' | 'monthlyRevenue' | 'businessYears'
+    >,
+    newMonthlyInstallment: number
+  ): LoanEligibilityResult {
+    const rule = LOAN_RULES[payload.kind];
+    const existingDebt = this.getActiveMonthlyObligation();
+    const totalDebt = existingDebt + newMonthlyInstallment;
+
+    if (payload.kind === 'umkm') {
+      const years = payload.businessYears ?? 0;
+      const revenue = Math.max(0, payload.monthlyRevenue ?? 0);
+      const maxAllowed = Math.round(revenue * (rule.maxDsrPercent / 100));
+      const dsrPercent = revenue > 0 ? Math.round((totalDebt / revenue) * 1000) / 10 : 100;
+
+      if (years < LOAN_RULES.umkm.minBusinessYears) {
+        return {
+          eligible: false,
+          dsrPercent,
+          maxDsrPercent: rule.maxDsrPercent,
+          maxAllowedInstallment: maxAllowed,
+          reason: `Lama usaha minimal ${LOAN_RULES.umkm.minBusinessYears} tahun untuk pengajuan Kredit UMKM.`,
+        };
+      }
+      if (revenue <= 0) {
+        return {
+          eligible: false,
+          dsrPercent: 100,
+          maxDsrPercent: rule.maxDsrPercent,
+          maxAllowedInstallment: 0,
+          reason: 'Masukkan omzet bulanan usaha yang valid untuk evaluasi kelayakan.',
+        };
+      }
+      if (totalDebt > maxAllowed) {
+        return {
+          eligible: false,
+          dsrPercent,
+          maxDsrPercent: rule.maxDsrPercent,
+          maxAllowedInstallment: maxAllowed,
+          reason: `Total cicilan (${formatIDR(totalDebt)}/bln, DSR ${dsrPercent}%) melebihi batas aman ${rule.maxDsrPercent}% omzet (${formatIDR(maxAllowed)}/bln). Silakan kurangi plafon atau perpanjang tenor.`,
+        };
+      }
+
+      return {
+        eligible: true,
+        dsrPercent,
+        maxDsrPercent: rule.maxDsrPercent,
+        maxAllowedInstallment: maxAllowed,
+        reason: `Layak disetujui (DSR ${dsrPercent}% ≤ batas ${rule.maxDsrPercent}% omzet).`,
+      };
+    }
+
+    // Individu (Konsumtif)
+    const income = Math.max(0, payload.monthlyIncome ?? 0);
+    const maxAllowed = Math.round(income * (rule.maxDsrPercent / 100));
+    const dsrPercent = income > 0 ? Math.round((totalDebt / income) * 1000) / 10 : 100;
+
+    if (income <= 0) {
+      return {
+        eligible: false,
+        dsrPercent: 100,
+        maxDsrPercent: rule.maxDsrPercent,
+        maxAllowedInstallment: 0,
+        reason: 'Masukkan penghasilan bersih bulanan yang valid untuk evaluasi kelayakan.',
+      };
+    }
+    if (totalDebt > maxAllowed) {
+      return {
+        eligible: false,
+        dsrPercent,
+        maxDsrPercent: rule.maxDsrPercent,
+        maxAllowedInstallment: maxAllowed,
+        reason: `Total cicilan (${formatIDR(totalDebt)}/bln, DSR ${dsrPercent}%) melebihi batas aman ${rule.maxDsrPercent}% penghasilan (${formatIDR(maxAllowed)}/bln). Silakan kurangi plafon atau perpanjang tenor.`,
+      };
+    }
+
+    return {
+      eligible: true,
+      dsrPercent,
+      maxDsrPercent: rule.maxDsrPercent,
+      maxAllowedInstallment: maxAllowed,
+      reason: `Layak disetujui (DSR ${dsrPercent}% ≤ batas ${rule.maxDsrPercent}% penghasilan).`,
+    };
+  }
+
   public applyLoan(
     payload: LoanApplicationPayload
-  ): { ok: true; loan: ActiveLoan; simulation: LoanSimulationResult } | { ok: false; error: string } {
+  ):
+    | { ok: true; loan: ActiveLoan; simulation: LoanSimulationResult; eligibility: LoanEligibilityResult }
+    | { ok: false; error: string; eligibility?: LoanEligibilityResult } {
     const rule = LOAN_RULES[payload.kind];
     if (payload.principal < rule.minAmount || payload.principal > rule.maxAmount) {
       return {
         ok: false,
-        error: `Plafon ${rule.productName} harus antara Rp ${rule.minAmount.toLocaleString('id-ID')} dan Rp ${rule.maxAmount.toLocaleString('id-ID')}.`,
+        error: `Plafon ${rule.productName} harus antara ${formatIDR(rule.minAmount)} dan ${formatIDR(rule.maxAmount)}.`,
       };
     }
 
     const simulation = calculateLoanInstallment(payload.kind, payload.principal, payload.tenorMonths);
+    const eligibility = this.evaluateEligibility(payload, simulation.monthlyInstallment);
+    if (!eligibility.eligible) {
+      return { ok: false, error: eligibility.reason, eligibility };
+    }
+
     const creditResult = accountService.creditAccount(
       payload.disbursementAccountId,
       simulation.netDisbursement
@@ -51,6 +156,11 @@ class LoanService {
     if (!creditResult.ok) {
       return { ok: false, error: creditResult.error };
     }
+
+    const applicantSummary =
+      payload.kind === 'umkm'
+        ? `${payload.businessName?.trim() || 'Usaha UMKM'} • ${payload.businessSector || 'UMKM'} (NIB: ${payload.nibNumber?.trim() || '-'})`
+        : `${payload.employmentStatus || 'Individu'} • Penghasilan ${formatIDR(payload.monthlyIncome ?? 0)}/bln`;
 
     const contractNumber = `${rule.contractPrefix}-${new Date().getFullYear()}-${randomDigits(5)}`;
     const loan: ActiveLoan = {
@@ -65,6 +175,8 @@ class LoanService {
       paidInstallments: 0,
       remainingBalance: simulation.totalRepayment,
       purpose: payload.purpose.trim() || 'Kebutuhan Pembiayaan',
+      applicantSummary,
+      dsrPercent: eligibility.dsrPercent,
       disbursementAccountNumber: creditResult.account.accountNumber,
       openedAt: formatDateID(new Date()),
       status: 'AKTIF',
@@ -81,7 +193,7 @@ class LoanService {
       type: 'CREDIT',
     });
 
-    return { ok: true, loan, simulation };
+    return { ok: true, loan, simulation, eligibility };
   }
 
   public payInstallment(

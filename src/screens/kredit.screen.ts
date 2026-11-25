@@ -16,6 +16,9 @@ let simAmount = 25_000_000;
 let simTenor = 12;
 let applyAmount = 25_000_000;
 let applyTenor = 12;
+let indIncome = 8_500_000;
+let umkmRevenue = 25_000_000;
+let umkmYears = 2;
 
 function renderLoansTab(): string {
   const loans = loanService.getLoans();
@@ -26,7 +29,7 @@ function renderLoansTab(): string {
       <div class="surface-plate">
         <div class="empty-inline">
           <i data-lucide="landmark" width="32" height="32"></i>
-          <p>Anda belum memiliki fasilitas kredit aktif. Ajukan Kredit Konsumtif atau UMKM dan dana cair instan ke rekening Tabungan Anda.</p>
+          <p>Anda belum memiliki fasilitas kredit aktif. Pilih segmen <strong>Kredit Individu</strong> atau <strong>Kredit UMKM</strong> untuk mengajukan pembiayaan.</p>
           <button type="button" class="btn btn-primary btn-sm" id="kredit-go-apply">
             <i data-lucide="plus" width="15" height="15"></i>
             Ajukan Kredit Sekarang
@@ -37,7 +40,7 @@ function renderLoansTab(): string {
   }
 
   return `
-    <div class="catalog-grid">
+    <div class="catalog-grid two-col">
       ${loans
         .map((loan: ActiveLoan) => {
           const pct = Math.min(100, Math.round((loan.paidInstallments / loan.tenorMonths) * 100));
@@ -53,7 +56,7 @@ function renderLoansTab(): string {
                 </span>
               </div>
               <h3>${loan.productName}</h3>
-              <p class="catalog-desc">${loan.contractNumber} • Cair ke ${loan.disbursementAccountNumber}</p>
+              <p class="catalog-desc">${loan.contractNumber} • ${loan.applicantSummary ?? ''}</p>
 
               <div class="loan-progress-wrap">
                 <div class="loan-progress-bar">
@@ -66,6 +69,7 @@ function renderLoansTab(): string {
                 <li><span>Plafon Awal</span><strong>${formatIDR(loan.principal)}</strong></li>
                 <li><span>Angsuran / Bulan</span><strong>${formatIDR(loan.monthlyInstallment)}</strong></li>
                 <li><span>Sisa Kewajiban</span><strong class="${isLunas ? 'text-positive' : ''}">${formatIDR(loan.remainingBalance)}</strong></li>
+                <li><span>Rekening Pencairan</span><strong>${loan.disbursementAccountNumber}</strong></li>
               </ul>
 
               ${
@@ -95,6 +99,88 @@ function renderLoansTab(): string {
   `;
 }
 
+function renderSegmentSelectorCards(): string {
+  const segments: readonly LoanKind[] = ['konsumtif', 'umkm'];
+  return `
+    <div class="catalog-grid two-col">
+      ${segments
+        .map((kind) => {
+          const r = LOAN_RULES[kind];
+          const isSelected = selectedKind === kind;
+          return `
+            <button type="button" class="segment-compare-card ${isSelected ? 'active' : ''}" data-loan-kind="${kind}">
+              <div class="catalog-card-head">
+                <span class="tile-icon-badge ${isSelected ? 'is-lime' : ''}">
+                  <i data-lucide="${kind === 'umkm' ? 'store' : 'user-check'}" width="20" height="20"></i>
+                </span>
+                <span class="pill-badge ${isSelected ? 'badge-lime' : ''}">${r.segmentLabel}</span>
+              </div>
+              <h3>${r.productName}</h3>
+              <p class="catalog-desc">Plafon ${formatIDR(r.minAmount)} – ${formatIDR(r.maxAmount)} • Bunga ${r.monthlyRatePercent}% / bln</p>
+              <ul class="segment-req-list">
+                ${r.requirements.map((req) => `<li><i data-lucide="check" width="13" height="13"></i> ${req}</li>`).join('')}
+              </ul>
+            </button>
+          `;
+        })
+        .join('')}
+    </div>
+  `;
+}
+
+function renderSegmentSpecificFields(): string {
+  if (selectedKind === 'umkm') {
+    return `
+      <div class="form-group">
+        <label for="kr-biz-name">Nama Usaha / Toko / CV <span class="required-mark">*</span></label>
+        <input type="text" id="kr-biz-name" class="input-control" placeholder="Contoh: Kedai Kopi Lentera" value="Warung Kuliner Sejahtera" required />
+      </div>
+      <div class="form-group">
+        <label for="kr-biz-sector">Bidang Usaha <span class="required-mark">*</span></label>
+        <select id="kr-biz-sector" class="input-control" required>
+          <option value="Kuliner & F&B">Kuliner & F&B</option>
+          <option value="Perdagangan / Ritel">Perdagangan / Ritel</option>
+          <option value="Jasa & Layanan">Jasa & Layanan</option>
+          <option value="Produksi / Kerajinan">Produksi / Kerajinan</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="kr-biz-revenue">Omzet Usaha / Bulan <span class="required-mark">*</span></label>
+        <div class="input-currency-wrap">
+          <span class="currency-prefix">Rp</span>
+          <input type="number" id="kr-biz-revenue" class="input-control" min="1000000" step="500000" value="${umkmRevenue}" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="kr-biz-years">Lama Usaha Berjalan (Tahun) <span class="required-mark">*</span></label>
+        <input type="number" id="kr-biz-years" class="input-control" min="0" max="50" step="1" value="${umkmYears}" required />
+      </div>
+      <div class="form-group full-width">
+        <label for="kr-biz-nib">Nomor NIB / Surat Keterangan Usaha <span class="required-mark">*</span></label>
+        <input type="text" id="kr-biz-nib" class="input-control" placeholder="Contoh: 1209230048112" value="1209230048112" required />
+      </div>
+    `;
+  }
+
+  return `
+    <div class="form-group">
+      <label for="kr-ind-job">Status Pekerjaan <span class="required-mark">*</span></label>
+      <select id="kr-ind-job" class="input-control" required>
+        <option value="Karyawan Swasta">Karyawan Swasta</option>
+        <option value="ASN / Pegawai BUMN">ASN / Pegawai BUMN</option>
+        <option value="Profesional / Freelancer">Profesional / Freelancer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="kr-ind-income">Penghasilan Bersih / Bulan <span class="required-mark">*</span></label>
+      <div class="input-currency-wrap">
+        <span class="currency-prefix">Rp</span>
+        <input type="number" id="kr-ind-income" class="input-control" min="1000000" step="500000" value="${indIncome}" required />
+      </div>
+    </div>
+  `;
+}
+
 function renderApplyTab(): string {
   const rule = LOAN_RULES[selectedKind];
   const accounts = accountService.getTransactableAccounts();
@@ -103,28 +189,32 @@ function renderApplyTab(): string {
     applyTenor = rule.tenors[1] ?? rule.tenors[0];
   }
   const sim = calculateLoanInstallment(selectedKind, clampedAmount, applyTenor);
+  const elig = loanService.evaluateEligibility(
+    {
+      kind: selectedKind,
+      monthlyIncome: indIncome,
+      monthlyRevenue: umkmRevenue,
+      businessYears: umkmYears,
+    },
+    sim.monthlyInstallment
+  );
 
   return `
+    ${renderSegmentSelectorCards()}
+
     <div class="surface-plate">
       <div class="pane-header">
         <div>
-          <h3>Pengajuan Kredit LENTERA</h3>
-          <p>Pilih jenis kredit, plafon, dan rekening tujuan pencairan dana.</p>
+          <h3>Formulir ${rule.productName}</h3>
+          <p>Segmen <strong>${rule.segmentLabel}</strong> • Dilengkapi evaluasi kelayakan DSR otomatis.</p>
         </div>
         <span class="pill-badge badge-lime">Bunga ${rule.monthlyRatePercent}% / bln</span>
       </div>
 
-      <div class="filter-chip-row" style="margin-bottom: 16px;">
-        <button type="button" class="filter-chip ${selectedKind === 'konsumtif' ? 'active' : ''}" data-loan-kind="konsumtif">
-          Kredit Konsumtif (s/d 200 Jt)
-        </button>
-        <button type="button" class="filter-chip ${selectedKind === 'umkm' ? 'active' : ''}" data-loan-kind="umkm">
-          Kredit UMKM (s/d 500 Jt)
-        </button>
-      </div>
-
       <form id="kredit-apply-form">
         <div class="form-grid">
+          ${renderSegmentSpecificFields()}
+
           <div class="form-group">
             <label for="kr-amount">Plafon Pinjaman (${formatIDR(rule.minAmount)} – ${formatIDR(rule.maxAmount)})</label>
             <div class="input-currency-wrap">
@@ -156,7 +246,7 @@ function renderApplyTab(): string {
 
           <div class="form-group">
             <label for="kr-purpose">Tujuan Pembiayaan</label>
-            <input type="text" id="kr-purpose" class="input-control" placeholder="${selectedKind === 'umkm' ? 'Modal kerja & ekspansi usaha' : 'Renovasi rumah / pendidikan'}" required />
+            <input type="text" id="kr-purpose" class="input-control" placeholder="${selectedKind === 'umkm' ? 'Tambah stok & ekspansi usaha' : 'Renovasi rumah / pendidikan'}" required />
           </div>
         </div>
 
@@ -166,8 +256,8 @@ function renderApplyTab(): string {
             <strong id="kr-live-installment">${formatIDR(sim.monthlyInstallment)}</strong>
           </div>
           <div class="calc-stat-box">
-            <span>Biaya Provisi (${rule.provisionPercent}%)</span>
-            <strong id="kr-live-provision">${formatIDR(sim.provisionFee)}</strong>
+            <span>Rasio Cicilan (DSR)</span>
+            <strong id="kr-live-dsr" class="${elig.eligible ? 'text-positive' : 'text-negative'}">${elig.dsrPercent}% / maks ${elig.maxDsrPercent}%</strong>
           </div>
           <div class="calc-stat-box">
             <span>Dana Cair ke Rekening</span>
@@ -175,9 +265,14 @@ function renderApplyTab(): string {
           </div>
         </div>
 
+        <div id="kr-live-elig-banner" class="elig-banner ${elig.eligible ? 'is-ok' : 'is-fail'}">
+          <i data-lucide="${elig.eligible ? 'check-circle-2' : 'alert-triangle'}" width="16" height="16"></i>
+          <span>${elig.reason}</span>
+        </div>
+
         <button type="submit" class="btn btn-primary btn-lg w-full" ${accounts.length === 0 ? 'disabled' : ''}>
           <i data-lucide="check-circle-2" width="18" height="18"></i>
-          Ajukan & Cairkan Dana Sekarang
+          Ajukan & Evaluasi Kelayakan Kredit
         </button>
       </form>
     </div>
@@ -196,10 +291,10 @@ function renderSimulatorTab(): string {
     <div class="surface-plate calc-plate">
       <div class="filter-chip-row">
         <button type="button" class="filter-chip ${simKind === 'konsumtif' ? 'active' : ''}" data-sim-kind="konsumtif">
-          Konsumtif (${LOAN_RULES.konsumtif.monthlyRatePercent}%/bln)
+          Individu / Konsumtif (${LOAN_RULES.konsumtif.monthlyRatePercent}%/bln)
         </button>
         <button type="button" class="filter-chip ${simKind === 'umkm' ? 'active' : ''}" data-sim-kind="umkm">
-          UMKM (${LOAN_RULES.umkm.monthlyRatePercent}%/bln)
+          UMKM / Modal Kerja (${LOAN_RULES.umkm.monthlyRatePercent}%/bln)
         </button>
       </div>
 
@@ -261,7 +356,7 @@ function renderSimulatorTab(): string {
 
 /**
  * Tanggung jawab tunggal: Merender layar Kredit & Pembiayaan (Tahap 2)
- * dengan manajemen Pinjaman Aktif, Form Pengajuan & Pencairan, serta Simulasi Angsuran.
+ * dengan pemisahan layanan Kredit Individu vs Kredit UMKM serta evaluasi DSR.
  */
 export function renderKreditScreen(container: HTMLElement): void {
   const draw = (): void => {
@@ -354,22 +449,52 @@ export function renderKreditScreen(container: HTMLElement): void {
 
     const krAmountEl = document.getElementById('kr-amount') as HTMLInputElement | null;
     const krTenorEl = document.getElementById('kr-tenor') as HTMLSelectElement | null;
+    const krIndIncomeEl = document.getElementById('kr-ind-income') as HTMLInputElement | null;
+    const krBizRevEl = document.getElementById('kr-biz-revenue') as HTMLInputElement | null;
+    const krBizYearsEl = document.getElementById('kr-biz-years') as HTMLInputElement | null;
 
     const refreshApplyPreview = (): void => {
       if (!krAmountEl || !krTenorEl) return;
       applyAmount = Number(krAmountEl.value) || LOAN_RULES[selectedKind].minAmount;
       applyTenor = Number(krTenorEl.value) || 12;
+      if (krIndIncomeEl) indIncome = Number(krIndIncomeEl.value) || 0;
+      if (krBizRevEl) umkmRevenue = Number(krBizRevEl.value) || 0;
+      if (krBizYearsEl) umkmYears = Number(krBizYearsEl.value) || 0;
+
       const sim = calculateLoanInstallment(selectedKind, applyAmount, applyTenor);
+      const elig = loanService.evaluateEligibility(
+        {
+          kind: selectedKind,
+          monthlyIncome: indIncome,
+          monthlyRevenue: umkmRevenue,
+          businessYears: umkmYears,
+        },
+        sim.monthlyInstallment
+      );
+
       const instEl = document.getElementById('kr-live-installment');
-      const provEl = document.getElementById('kr-live-provision');
+      const dsrEl = document.getElementById('kr-live-dsr');
       const netEl = document.getElementById('kr-live-net');
+      const bannerEl = document.getElementById('kr-live-elig-banner');
+
       if (instEl) instEl.textContent = formatIDR(sim.monthlyInstallment);
-      if (provEl) provEl.textContent = formatIDR(sim.provisionFee);
+      if (dsrEl) {
+        dsrEl.textContent = `${elig.dsrPercent}% / maks ${elig.maxDsrPercent}%`;
+        dsrEl.className = elig.eligible ? 'text-positive' : 'text-negative';
+      }
       if (netEl) netEl.textContent = formatIDR(sim.netDisbursement);
+      if (bannerEl) {
+        bannerEl.className = `elig-banner ${elig.eligible ? 'is-ok' : 'is-fail'}`;
+        bannerEl.innerHTML = `<i data-lucide="${elig.eligible ? 'check-circle-2' : 'alert-triangle'}" width="16" height="16"></i><span>${elig.reason}</span>`;
+        renderLucideIcons();
+      }
     };
 
     krAmountEl?.addEventListener('input', refreshApplyPreview);
     krTenorEl?.addEventListener('change', refreshApplyPreview);
+    krIndIncomeEl?.addEventListener('input', refreshApplyPreview);
+    krBizRevEl?.addEventListener('input', refreshApplyPreview);
+    krBizYearsEl?.addEventListener('input', refreshApplyPreview);
 
     document.getElementById('kredit-apply-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -384,15 +509,28 @@ export function renderKreditScreen(container: HTMLElement): void {
         tenorMonths: tenor,
         purpose,
         disbursementAccountId: accountId,
+        employmentStatus: (document.getElementById('kr-ind-job') as HTMLSelectElement | null)?.value,
+        monthlyIncome: Number(krIndIncomeEl?.value) || indIncome,
+        businessName: (document.getElementById('kr-biz-name') as HTMLInputElement | null)?.value,
+        businessSector: (document.getElementById('kr-biz-sector') as HTMLSelectElement | null)?.value,
+        businessYears: Number(krBizYearsEl?.value) ?? umkmYears,
+        monthlyRevenue: Number(krBizRevEl?.value) || umkmRevenue,
+        nibNumber: (document.getElementById('kr-biz-nib') as HTMLInputElement | null)?.value,
       });
 
       if (!res.ok) {
         modalController.show({
-          badge: 'Pengajuan Ditolak',
-          title: 'Periksa Nominal Pengajuan',
+          badge: 'Evaluasi Kelayakan Ditolak',
+          title: 'Pengajuan Belum Memenuhi Syarat',
           subtitle: res.error,
-          rows: [],
-          ctaLabel: 'Perbaiki',
+          rows: res.eligibility
+            ? [
+                { label: 'Rasio DSR Anda', value: `${res.eligibility.dsrPercent}%` },
+                { label: 'Batas Maksimal DSR', value: `${res.eligibility.maxDsrPercent}%` },
+                { label: 'Maks. Cicilan Layak', value: formatIDR(res.eligibility.maxAllowedInstallment), highlight: true },
+              ]
+            : [],
+          ctaLabel: 'Sesuaikan Pengajuan',
         });
         return;
       }
@@ -403,8 +541,8 @@ export function renderKreditScreen(container: HTMLElement): void {
         subtitle: `Dana pencairan telah masuk ke rekening ${res.loan.disbursementAccountNumber}.`,
         rows: [
           { label: 'Nomor Kontrak', value: res.loan.contractNumber },
-          { label: 'Plafon Disetujui', value: formatIDR(res.loan.principal) },
-          { label: 'Biaya Provisi', value: formatIDR(res.simulation.provisionFee) },
+          { label: 'Profil Pemohon', value: res.loan.applicantSummary },
+          { label: 'Skor DSR', value: `${res.eligibility.dsrPercent}% (Layak ≤ ${res.eligibility.maxDsrPercent}%)` },
           { label: 'Dana Cair ke Saldo', value: formatIDR(res.simulation.netDisbursement), highlight: true },
           { label: 'Angsuran / Bulan', value: `${formatIDR(res.loan.monthlyInstallment)} (${res.loan.tenorMonths}x)` },
         ],
