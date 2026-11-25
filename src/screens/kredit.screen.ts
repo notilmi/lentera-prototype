@@ -1,7 +1,7 @@
 import { LOAN_RULES } from '../config/product-rules.ts';
 import { accountService } from '../services/account.service.ts';
 import { calculateLoanInstallment } from '../services/calculator.service.ts';
-import { formatIDR } from '../services/format.service.ts';
+import { bindCurrencyInputs, formatIDR, parseCurrencyValue, setCurrencyInputValue } from '../services/format.service.ts';
 import { loanService } from '../services/loan.service.ts';
 import type { ActiveLoan, LoanKind } from '../types/loan.ts';
 import { renderLucideIcons } from '../ui/icons.ts';
@@ -148,7 +148,7 @@ function renderSegmentSpecificFields(): string {
         <label for="kr-biz-revenue">Omzet Usaha / Bulan <span class="required-mark">*</span></label>
         <div class="input-currency-wrap">
           <span class="currency-prefix">Rp</span>
-          <input type="number" id="kr-biz-revenue" class="input-control" min="1000000" step="500000" value="${umkmRevenue}" required />
+          <input type="text" inputmode="numeric" data-currency-input id="kr-biz-revenue" class="input-control" value="${umkmRevenue}" required />
         </div>
       </div>
       <div class="form-group">
@@ -175,7 +175,7 @@ function renderSegmentSpecificFields(): string {
       <label for="kr-ind-income">Penghasilan Bersih / Bulan <span class="required-mark">*</span></label>
       <div class="input-currency-wrap">
         <span class="currency-prefix">Rp</span>
-        <input type="number" id="kr-ind-income" class="input-control" min="1000000" step="500000" value="${indIncome}" required />
+        <input type="text" inputmode="numeric" data-currency-input id="kr-ind-income" class="input-control" value="${indIncome}" required />
       </div>
     </div>
   `;
@@ -219,7 +219,7 @@ function renderApplyTab(): string {
             <label for="kr-amount">Plafon Pinjaman (${formatIDR(rule.minAmount)} – ${formatIDR(rule.maxAmount)})</label>
             <div class="input-currency-wrap">
               <span class="currency-prefix">Rp</span>
-              <input type="number" id="kr-amount" class="input-control" min="${rule.minAmount}" max="${rule.maxAmount}" step="1000000" value="${clampedAmount}" required />
+              <input type="text" inputmode="numeric" data-currency-input id="kr-amount" class="input-control" value="${clampedAmount}" required />
             </div>
           </div>
 
@@ -303,7 +303,7 @@ function renderSimulatorTab(): string {
         <label for="kr-sim-amount">Nominal Pinjaman</label>
         <div class="input-currency-wrap">
           <span class="currency-prefix">Rp</span>
-          <input type="number" id="kr-sim-amount" class="input-control" min="${rule.minAmount}" max="${rule.maxAmount}" step="1000000" value="${clamped}" />
+          <input type="text" inputmode="numeric" data-currency-input id="kr-sim-amount" class="input-control" value="${clamped}" />
         </div>
         <input type="range" id="kr-sim-range" class="range-slider" min="${rule.minAmount}" max="${rule.maxAmount}" step="1000000" value="${clamped}" />
         <div class="range-labels">
@@ -380,6 +380,7 @@ export function renderKreditScreen(container: HTMLElement): void {
     `;
 
     bindEvents(draw);
+    bindCurrencyInputs(container);
     renderLucideIcons();
   };
 
@@ -449,10 +450,10 @@ export function renderKreditScreen(container: HTMLElement): void {
 
     const refreshApplyPreview = (): void => {
       if (!krAmountEl || !krTenorEl) return;
-      applyAmount = Number(krAmountEl.value) || LOAN_RULES[selectedKind].minAmount;
+      applyAmount = parseCurrencyValue(krAmountEl.value) || LOAN_RULES[selectedKind].minAmount;
       applyTenor = Number(krTenorEl.value) || 12;
-      if (krIndIncomeEl) indIncome = Number(krIndIncomeEl.value) || 0;
-      if (krBizRevEl) umkmRevenue = Number(krBizRevEl.value) || 0;
+      if (krIndIncomeEl) indIncome = parseCurrencyValue(krIndIncomeEl.value);
+      if (krBizRevEl) umkmRevenue = parseCurrencyValue(krBizRevEl.value);
       if (krBizYearsEl) umkmYears = Number(krBizYearsEl.value) || 0;
 
       const sim = calculateLoanInstallment(selectedKind, applyAmount, applyTenor);
@@ -492,7 +493,7 @@ export function renderKreditScreen(container: HTMLElement): void {
 
     document.getElementById('kredit-apply-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const amount = Number(krAmountEl?.value) || 0;
+      const amount = parseCurrencyValue(krAmountEl?.value ?? '');
       const tenor = Number(krTenorEl?.value) || 12;
       const accountId = (document.getElementById('kr-account') as HTMLSelectElement | null)?.value ?? '';
       const purpose = (document.getElementById('kr-purpose') as HTMLInputElement | null)?.value ?? '';
@@ -504,11 +505,11 @@ export function renderKreditScreen(container: HTMLElement): void {
         purpose,
         disbursementAccountId: accountId,
         employmentStatus: (document.getElementById('kr-ind-job') as HTMLSelectElement | null)?.value,
-        monthlyIncome: Number(krIndIncomeEl?.value) || indIncome,
+        monthlyIncome: krIndIncomeEl ? parseCurrencyValue(krIndIncomeEl.value) : indIncome,
         businessName: (document.getElementById('kr-biz-name') as HTMLInputElement | null)?.value,
         businessSector: (document.getElementById('kr-biz-sector') as HTMLSelectElement | null)?.value,
         businessYears: Number(krBizYearsEl?.value) ?? umkmYears,
-        monthlyRevenue: Number(krBizRevEl?.value) || umkmRevenue,
+        monthlyRevenue: krBizRevEl ? parseCurrencyValue(krBizRevEl.value) : umkmRevenue,
         nibNumber: (document.getElementById('kr-biz-nib') as HTMLInputElement | null)?.value,
       });
 
@@ -572,14 +573,14 @@ export function renderKreditScreen(container: HTMLElement): void {
     };
 
     simAmountEl?.addEventListener('input', () => {
-      simAmount = Number(simAmountEl.value) || LOAN_RULES[simKind].minAmount;
+      simAmount = parseCurrencyValue(simAmountEl.value) || LOAN_RULES[simKind].minAmount;
       if (simRangeEl) simRangeEl.value = String(simAmount);
       refreshSimStats();
     });
 
     simRangeEl?.addEventListener('input', () => {
       simAmount = Number(simRangeEl.value) || LOAN_RULES[simKind].minAmount;
-      if (simAmountEl) simAmountEl.value = String(simAmount);
+      setCurrencyInputValue(simAmountEl, simAmount);
       refreshSimStats();
     });
 

@@ -1,6 +1,6 @@
 import { TRANSACTION_RULES } from '../config/product-rules.ts';
 import { accountService } from '../services/account.service.ts';
-import { formatIDR } from '../services/format.service.ts';
+import { bindCurrencyInputs, formatIDR, parseCurrencyValue } from '../services/format.service.ts';
 import { transferService, type DigitalTxReceipt } from '../services/transfer.service.ts';
 import { renderLucideIcons } from './icons.ts';
 
@@ -130,6 +130,7 @@ class QrisFlowController {
 
     this.overlayEl.innerHTML = `<div class="qris-phone-shell">${bodyHtml}</div>`;
     this.bindStepEvents();
+    bindCurrencyInputs(this.overlayEl);
     renderLucideIcons();
 
     if (this.step === 'scan') {
@@ -218,7 +219,7 @@ class QrisFlowController {
             <label for="qris-review-amount">Nominal Pembayaran</label>
             <div class="input-currency-wrap">
               <span class="currency-prefix">Rp</span>
-              <input type="number" id="qris-review-amount" class="input-control qris-amount-input" min="1000" step="1000" value="${this.amount}" />
+              <input type="text" inputmode="numeric" data-currency-input id="qris-review-amount" class="input-control qris-amount-input" value="${this.amount}" />
             </div>
             <div class="quick-amt-row">
               ${TRANSACTION_RULES.quickAmounts
@@ -389,7 +390,7 @@ class QrisFlowController {
       const amtInput = document.getElementById('qris-review-amount') as HTMLInputElement | null;
       const totalEl = document.getElementById('qris-review-total');
       amtInput?.addEventListener('input', () => {
-        this.amount = Math.max(0, Number(amtInput.value) || 0);
+        this.amount = parseCurrencyValue(amtInput.value);
         if (totalEl) totalEl.textContent = formatIDR(this.amount);
       });
 

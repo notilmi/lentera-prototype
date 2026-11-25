@@ -1,7 +1,7 @@
 import { GIRO_FACILITY_LABELS, PRODUCT_RULES, ROLLOVER_LABELS } from '../config/product-rules.ts';
 import { accountService } from '../services/account.service.ts';
 import { authService } from '../services/auth.service.ts';
-import { formatIDR } from '../services/format.service.ts';
+import { bindCurrencyInputs, formatIDR, parseCurrencyValue } from '../services/format.service.ts';
 import { ledgerService } from '../services/ledger.service.ts';
 import { routerService } from '../services/router.service.ts';
 import type {
@@ -46,7 +46,7 @@ function renderTabunganForm(): string {
           <label for="tb-deposit">Setoran Awal (Min. Rp 50.000) <span class="required-mark">*</span></label>
           <div class="input-currency-wrap">
             <span class="currency-prefix">Rp</span>
-            <input type="number" id="tb-deposit" class="input-control" min="50000" step="10000" value="500000" required />
+            <input type="text" inputmode="numeric" data-currency-input id="tb-deposit" class="input-control" value="500.000" required />
           </div>
         </div>
       </div>
@@ -92,7 +92,7 @@ function renderDepositoForm(prefillAmount?: number, prefillTenor?: number): stri
           <label for="dp-amount">Nominal Penempatan (Min. Rp 1.000.000) <span class="required-mark">*</span></label>
           <div class="input-currency-wrap">
             <span class="currency-prefix">Rp</span>
-            <input type="number" id="dp-amount" class="input-control" min="1000000" step="500000" value="${amount}" required />
+            <input type="text" inputmode="numeric" data-currency-input id="dp-amount" class="input-control" value="${amount}" required />
           </div>
         </div>
         <div class="form-group">
@@ -161,7 +161,7 @@ function renderGiroForm(): string {
           <label for="gr-deposit">Setoran Awal Giro (Min. Rp 1.000.000) <span class="required-mark">*</span></label>
           <div class="input-currency-wrap">
             <span class="currency-prefix">Rp</span>
-            <input type="number" id="gr-deposit" class="input-control" min="1000000" step="500000" value="2500000" required />
+            <input type="text" inputmode="numeric" data-currency-input id="gr-deposit" class="input-control" value="2.500.000" required />
           </div>
         </div>
         <div class="form-group">
@@ -228,6 +228,7 @@ export function renderApplyScreen(container: HTMLElement, params?: RouteParams):
     });
 
     bindActiveForm();
+    bindCurrencyInputs(container);
     renderLucideIcons();
   };
 
@@ -238,7 +239,7 @@ export function renderApplyScreen(container: HTMLElement, params?: RouteParams):
       const nik = (document.getElementById('tb-nik') as HTMLInputElement).value.trim();
       const phone = (document.getElementById('tb-phone') as HTMLInputElement).value.trim();
       const email = (document.getElementById('tb-email') as HTMLInputElement).value.trim();
-      const initialDeposit = Number((document.getElementById('tb-deposit') as HTMLInputElement).value);
+      const initialDeposit = parseCurrencyValue((document.getElementById('tb-deposit') as HTMLInputElement).value);
 
       if (initialDeposit < PRODUCT_RULES.savings.minInitialDeposit) {
         window.alert(`Setoran awal min. ${formatIDR(PRODUCT_RULES.savings.minInitialDeposit)}.`);
@@ -271,7 +272,7 @@ export function renderApplyScreen(container: HTMLElement, params?: RouteParams):
       e.preventDefault();
       const holderName = (document.getElementById('dp-name') as HTMLInputElement).value.trim();
       const sourceAccount = (document.getElementById('dp-source') as HTMLSelectElement).value;
-      const principalAmount = Number((document.getElementById('dp-amount') as HTMLInputElement).value);
+      const principalAmount = parseCurrencyValue((document.getElementById('dp-amount') as HTMLInputElement).value);
       const tenorMonths = Number((document.getElementById('dp-tenor') as HTMLSelectElement).value);
       const rolloverMode = (document.getElementById('dp-aro') as HTMLSelectElement).value as DepositRolloverMode;
 
@@ -315,7 +316,7 @@ export function renderApplyScreen(container: HTMLElement, params?: RouteParams):
       const entityName = (document.getElementById('gr-entity-name') as HTMLInputElement).value.trim();
       const npwp = (document.getElementById('gr-npwp') as HTMLInputElement).value.trim();
       const businessSector = (document.getElementById('gr-nib') as HTMLInputElement).value.trim();
-      const initialDeposit = Number((document.getElementById('gr-deposit') as HTMLInputElement).value);
+      const initialDeposit = parseCurrencyValue((document.getElementById('gr-deposit') as HTMLInputElement).value);
       const facility = (document.getElementById('gr-facility') as HTMLSelectElement).value as GiroFacilityOption;
 
       if (initialDeposit < PRODUCT_RULES.giro.minInitialDeposit) {

@@ -1,7 +1,7 @@
 import { PRODUCT_RULES } from '../config/product-rules.ts';
 import { accountService } from '../services/account.service.ts';
 import { calculateDepositYield } from '../services/calculator.service.ts';
-import { formatIDR } from '../services/format.service.ts';
+import { bindCurrencyInputs, formatIDR, parseCurrencyValue, setCurrencyInputValue } from '../services/format.service.ts';
 import { routerService } from '../services/router.service.ts';
 import type { BankAccount, ProductKind } from '../types/account.ts';
 import type { RouteParams, SimpananSubTab } from '../types/navigation.ts';
@@ -153,7 +153,7 @@ function renderCalculatorTab(): string {
         <label for="sim-calc-amount">Nominal Penempatan Deposito</label>
         <div class="input-currency-wrap">
           <span class="currency-prefix">Rp</span>
-          <input type="number" id="sim-calc-amount" class="input-control" min="1000000" step="500000" value="${calcAmount}" />
+          <input type="text" inputmode="numeric" data-currency-input id="sim-calc-amount" class="input-control" value="${calcAmount}" />
         </div>
         <input type="range" id="sim-calc-range" class="range-slider" min="1000000" max="100000000" step="1000000" value="${Math.min(100_000_000, Math.max(1_000_000, calcAmount))}" />
         <div class="range-labels">
@@ -285,8 +285,10 @@ export function renderSimpananScreen(container: HTMLElement, params?: RouteParam
       setTxt('sim-res-total', formatIDR(res.maturityTotal));
     };
 
+    bindCurrencyInputs(container);
+
     amountInput?.addEventListener('input', () => {
-      calcAmount = Number(amountInput.value) || 0;
+      calcAmount = parseCurrencyValue(amountInput.value);
       if (rangeInput) {
         rangeInput.value = String(Math.min(100_000_000, Math.max(1_000_000, calcAmount)));
       }
@@ -295,7 +297,7 @@ export function renderSimpananScreen(container: HTMLElement, params?: RouteParam
 
     rangeInput?.addEventListener('input', () => {
       calcAmount = Number(rangeInput.value);
-      if (amountInput) amountInput.value = String(calcAmount);
+      setCurrencyInputValue(amountInput, calcAmount);
       refreshCalcNumbers();
     });
 

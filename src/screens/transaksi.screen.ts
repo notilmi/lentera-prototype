@@ -1,6 +1,6 @@
 import { TRANSACTION_RULES } from '../config/product-rules.ts';
 import { accountService } from '../services/account.service.ts';
-import { formatIDR } from '../services/format.service.ts';
+import { bindCurrencyInputs, formatIDR, parseCurrencyValue, setCurrencyInputValue } from '../services/format.service.ts';
 import { transferService } from '../services/transfer.service.ts';
 import type { RouteParams, TransaksiMode } from '../types/navigation.ts';
 import { renderLucideIcons } from '../ui/icons.ts';
@@ -84,7 +84,7 @@ function renderTransferForm(): string {
           <label for="tr-amount">Nominal Transfer</label>
           <div class="input-currency-wrap">
             <span class="currency-prefix">Rp</span>
-            <input type="number" id="tr-amount" class="input-control" min="10000" step="5000" value="150000" required />
+            <input type="text" inputmode="numeric" data-currency-input id="tr-amount" class="input-control" value="150.000" required />
           </div>
           ${renderQuickAmountPills('tr-amount')}
         </div>
@@ -167,7 +167,7 @@ function renderTagihanForm(): string {
           <label for="tg-amount">Nominal Tagihan</label>
           <div class="input-currency-wrap">
             <span class="currency-prefix">Rp</span>
-            <input type="number" id="tg-amount" class="input-control" min="10000" step="1000" value="${firstCat.sampleAmount}" required />
+            <input type="text" inputmode="numeric" data-currency-input id="tg-amount" class="input-control" value="${firstCat.sampleAmount}" required />
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@ function renderEwalletForm(): string {
           <label for="ew-amount">Nominal Top Up</label>
           <div class="input-currency-wrap">
             <span class="currency-prefix">Rp</span>
-            <input type="number" id="ew-amount" class="input-control" min="10000" step="10000" value="100000" required />
+            <input type="text" inputmode="numeric" data-currency-input id="ew-amount" class="input-control" value="100.000" required />
           </div>
           ${renderQuickAmountPills('ew-amount')}
         </div>
@@ -264,6 +264,7 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
     `;
 
     bindEvents(draw);
+    bindCurrencyInputs(container);
     renderLucideIcons();
   };
 
@@ -330,7 +331,7 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
       const sel = e.target as HTMLSelectElement;
       const sample = sel.selectedOptions[0]?.dataset.sample;
       const amtInput = document.getElementById('tg-amount') as HTMLInputElement | null;
-      if (sample && amtInput) amtInput.value = sample;
+      if (sample && amtInput) setCurrencyInputValue(amtInput, Number(sample));
     });
 
     const getSourceAccountId = (): string =>
@@ -342,7 +343,7 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
       const bankCode = bankSel.value;
       const fee = Number(bankSel.selectedOptions[0]?.dataset.fee ?? 0);
       const targetAcc = (document.getElementById('tr-target-acc') as HTMLInputElement).value.trim();
-      const amount = Number((document.getElementById('tr-amount') as HTMLInputElement).value);
+      const amount = parseCurrencyValue((document.getElementById('tr-amount') as HTMLInputElement).value);
       const note = (document.getElementById('tr-note') as HTMLInputElement).value.trim();
 
       const res = transferService.execute({
@@ -363,7 +364,7 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
         const amt = btn.dataset.quickAmt;
         if (!targetId || !amt) return;
         const input = document.getElementById(targetId) as HTMLInputElement | null;
-        if (input) input.value = amt;
+        setCurrencyInputValue(input, Number(amt));
       });
     });
 
@@ -373,7 +374,7 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
       const catLabel = catSel.selectedOptions[0]?.textContent?.split(' (')[0] ?? 'Tagihan';
       const fee = Number(catSel.selectedOptions[0]?.dataset.fee ?? 0);
       const custId = (document.getElementById('tg-customer-id') as HTMLInputElement).value.trim();
-      const amount = Number((document.getElementById('tg-amount') as HTMLInputElement).value);
+      const amount = parseCurrencyValue((document.getElementById('tg-amount') as HTMLInputElement).value);
 
       const res = transferService.execute({
         mode: 'tagihan',
@@ -393,7 +394,7 @@ export function renderTransaksiScreen(container: HTMLElement, params?: RoutePara
       const ewName = ewSel.selectedOptions[0]?.textContent?.split(' (')[0] ?? 'e-Wallet';
       const fee = Number(ewSel.selectedOptions[0]?.dataset.fee ?? 0);
       const phone = (document.getElementById('ew-phone') as HTMLInputElement).value.trim();
-      const amount = Number((document.getElementById('ew-amount') as HTMLInputElement).value);
+      const amount = parseCurrencyValue((document.getElementById('ew-amount') as HTMLInputElement).value);
 
       const res = transferService.execute({
         mode: 'ewallet',
